@@ -1,0 +1,17 @@
+[run]
+source = core
+omit =
+    */migrations/*
+    */__pycache__/*
+    core/management/commands/*
+    core/models_generated.py
+    core/apps.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__.:
+    raise NotImplementedError
+    if settings.DEBUG
+    pass
