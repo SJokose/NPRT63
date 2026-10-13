@@ -1,55 +1,50 @@
-# NPRT63
-
-## NPRT63 - Project
-
-[![Code License](https://img.shields.io/badge/Code%20License-GPLv2-blue.svg)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Follow%20%40iammelvink-blue.svg?style=social&logo=linkedin)](https://www.linkedin.com/in/iammelvink)
+# MediSync SA
 
 ## Overview
 
-This is the codebase produced for the Project course
+**MediSync SA** is a Django-based clinic management system designed for South African healthcare facilities. It provides a unified platform for patients, doctors, nurses, receptionists, and administrators to manage appointments, medical records, prescriptions, referrals, and follow-ups.
 
-Written in **Placeholder**
+The system uses **South African ID numbers** for patient identification, **OTP-based login** (via SMS) for authentication, and **MySQL stored procedures** to enforce critical business rules such as preventing double-bookings.
 
-1. Methodologies/Project Management:
+### Methodologies & Practices
 
-   - Agile
+1. **Methodologies/Project Management:**
+   - Agile (iterative development, feature-by-feature)
 
-2. Coding Practices:
+2. **Coding Practices:**
+   - OOP (Object-Oriented Programming)
+   - MVC (Django's Model-View-Template pattern)
+   - Test-Driven development for critical paths
 
-   - OOP (Object Oriented Programming)
-   - MVC (Model View Controller)
+3. **Programming Languages/Frameworks:**
+   - Python 3.13
+   - Django 5.x
+   - MySQL 8 (with stored procedures)
+   - Bootstrap 5 (via `crispy-bootstrap5`)
+   - HTML / CSS / JavaScript
 
-3. Programming Languages/Frameworks:
+## Features
 
-   - Placeholder
+- **Patient portal** — register with SA ID, book/reschedule/cancel appointments, view follow-ups and prescriptions
+- **Staff portal** — role-based access for doctors, nurses, receptionists, and admins
+- **Clinical workflow** — medical records, clinical notes, referrals, prescriptions, follow-ups
+- **Queue management** — check patients in, track waiting / in-progress / completed
+- **Doctor scheduling** — block/unblock slots, whole-day blocks, date ranges
+- **Reports** — appointment, patient activity, and weekly summary dashboards
+- **Audit trail** — every create/update/delete is logged
+- **OTP login** — SA ID or staff ID + SMS OTP for authentication
+- **Public holiday awareness** — South African public holidays are respected when booking
 
-## Instructions
+## Setup
 
-1. Make sure you have these installed
+### Prerequisites
 
-2. Clone `ONLY THE LATEST COMMIT` of this repository into your local machine using the terminal (mac) or
-   [Gitbash (PC)](https://git-scm.com/download/win 'Gitbash (PC)') `to save storage space`
+- Python 3.12+
+- MySQL 8 (or MariaDB 10.5+)
+- pip
 
-   ```sh
-   git clone https://github.com/iammelvink/NPRT63.git --depth=1
-   ```
+### 1. Clone the repository
 
-## Author(s)
-
-"Group members and lecturer"
-
-[Melvin Kisten](https://github.com/iammelvink 'Melvin Kisten\'s GitHub page')
-
-GitHub: @"Group members"
-
-LinkedIn: [Melvin Kisten](https://www.linkedin.com/in/iammelvink 'Melvin Kisten\'s LinkedIn page')
-
-## Acknowledgments
-
-To my lecturer [Melvin Kisten](https://www.linkedin.com/in/iammelvink 'Melvin Kisten\'s LinkedIn page') for their guidance
-
-## More Stuff
-
-Check out some other stuff on
-[Melvin Kisten](https://github.com/iammelvink 'Melvin Kisten\'s GitHub page')
+```sh
+git clone https://github.com/iammelvink/NPRT63.git --depth=1
+cd NPRT63/Code
