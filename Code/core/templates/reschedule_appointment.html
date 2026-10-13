@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reschedule Appointment - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    html body .page-title { text-align: center; margin-bottom: 35px; }
+    html body .page-title h1 {
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        background: none !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    html body .page-title p { color: rgba(255,255,255,0.8) !important; }
+
+    .current-info {
+        background: #eff6ff;
+        border-left: 4px solid #2563eb;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        color: #1e40af;
+        font-size: 0.9rem;
+    }
+    .current-info strong { color: #0b1e4d; }
+
+    .main-card {
+        background: #ffffff;
+        border-radius: 22px;
+        padding: 30px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: #0b1e4d;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .form-label-custom::before {
+        content: '';
+        width: 5px; height: 18px;
+        background: linear-gradient(180deg, #1e3a8a, #2563eb);
+        border-radius: 5px;
+    }
+
+    .calendar-wrapper {
+        background: #f8fafc;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 2px solid #e2e8f0;
+    }
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+    .calendar-header h6 { font-weight: 800; color: #0b1e4d; margin: 0; }
+    .calendar-nav button {
+        width: 32px; height: 32px;
+        border-radius: 10px; border: none;
+        background: white; color: #2563eb;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+    }
+    .calendar-day-label {
+        text-align: center;
+        font-size: 0.7rem; font-weight: 700;
+        color: #64748b; text-transform: uppercase;
+        padding: 8px 0;
+    }
+    .calendar-day {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        background: white;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        font-size: 0.9rem; font-weight: 600;
+        color: #0b1e4d;
+        border: 2px solid transparent;
+        transition: all 0.25s;
+    }
+    .calendar-day:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(37,99,235,0.2);
+        border-color: #2563eb;
+    }
+    .calendar-day.empty { background: transparent; cursor: default; pointer-events: none; }
+    .calendar-day.closed { background: #eef2ff; color: #94a3b8; cursor: not-allowed; }
+    .calendar-day.selected {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+        color: white !important;
+    }
+    .calendar-day.available-green {
+        background: linear-gradient(135deg, #d4f5e0, #b8ebc9);
+        border-color: #38ef7d; color: #0d6b32;
+    }
+    .calendar-day.busy {
+        background: linear-gradient(135deg, #f2994a, #f2c94c);
+        border-color: #e88936; color: white;
+    }
+    .calendar-day.full {
+        background: linear-gradient(135deg, #eb3349, #f45c43);
+        border-color: #d42a3d; color: white;
+    }
+
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .time-slot {
+        padding: 12px 8px;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        color: white;
+    }
+    .time-slot.available { background: linear-gradient(135deg, #11998e, #38ef7d); }
+    .time-slot.booked, .time-slot.hold {
+        background: linear-gradient(135deg, #eb3349, #f45c43);
+        opacity: 0.75; cursor: not-allowed;
+    }
+    .time-slot.selected {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        transform: scale(1.05);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        border: none; color: white; border-radius: 16px;
+        padding: 16px 30px; font-weight: 800; font-size: 1rem;
+        width: 100%; box-shadow: 0 12px 30px rgba(37,99,235,0.4);
+        cursor: pointer;
+    }
+    .btn-submit:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 45px rgba(37,99,235,0.6);
+    }
+
+    /* Error box styling */
+    .form-errors {
+        background: #fee2e2;
+        border-left: 4px solid #dc2626;
+        color: #991b1b;
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+    }
+    .form-errors ul { margin: 0; padding-left: 20px; }
+    .field-error {
+        color: #dc2626;
+        font-size: 0.8rem;
+        margin-top: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container py-4" style="position: relative; z-index: 3;">
+
+    <div class="page-title">
+        <h1><i class="fas fa-calendar-alt me-2"></i>Reschedule Appointment</h1>
+        <p>Pick a new date and time for your appointment</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="main-card">
+
+                <div class="current-info">
+                    <strong>Current appointment:</strong>
+                    {{ appointment.doctor.get_doctor_display }} on
+                    {{ appointment.appointment_date|date:"l, d F Y" }} at
+                    {{ appointment.appointment_time|time:"H:i" }}
+                    ({{ appointment.status|upper }})
+                </div>
+
+                <form method="POST" id="rescheduleForm" novalidate>
+                    {% csrf_token %}
+
+                    {# ---------- Non-field errors (e.g. conflict, blocked slot, holiday) ---------- #}
+                    {% if form.non_field_errors %}
+                        <div class="form-errors">
+                            <strong>There is an issue when rescheduling:</strong>
+                            <ul>
+                                {% for err in form.non_field_errors %}
+                                    <li>{{ err }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+
+                    {# ---------- Date errors ---------- #}
+                    {% if form.appointment_date.errors %}
+                        <div class="form-errors">
+                            {% for err in form.appointment_date.errors %}
+                                <div>{{ err }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {# ---------- Time errors ---------- #}
+                    {% if form.appointment_time.errors %}
+                        <div class="form-errors">
+                            {% for err in form.appointment_time.errors %}
+                                <div>{{ err }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="calendar-wrapper">
+                        <div class="calendar-header">
+                            <h6 id="calendarMonthYear">Loading...</h6>
+                            <div class="calendar-nav">
+                                <button type="button" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                                <button type="button" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="calendar-grid" id="calendarGrid"></div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-custom">Available Time Slots</label>
+                        <div class="time-slots" id="timeSlots">
+                            <p class="text-muted small">Select a date to view available slots</p>
+                        </div>
+                        {% if form.appointment_time.errors %}
+                            <div class="field-error">
+                                {% for err in form.appointment_time.errors %}{{ err }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label-custom">Reason for Visit</label>
+                        {{ form.reason_for_visit }}
+                        {% if form.reason_for_visit.errors %}
+                            <div class="field-error">
+                                {% for err in form.reason_for_visit.errors %}{{ err }}{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {# Hidden inputs — JS fills these when user clicks date/time #}
+                    <div style="display:none;">
+                        {{ form.appointment_date }}
+                        {{ form.appointment_time }}
+                    </div>
+
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-check-circle me-2"></i>Confirm Reschedule
+                    </button>
+
+                    <div class="text-center mt-3">
+                        <a href="{% url 'core:my_appointments' %}" class="text-muted small">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel and go back
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="busyData" type="application/json">{{ busy_slots_json|default:"{}"|safe }}</script>
+<script id="confirmedData" type="application/json">{{ confirmed_slots_json|default:"{}"|safe }}</script>
+<script id="blockedData" type="application/json">{{ blocked_slots_json|default:"{}"|safe }}</script>
+<script id="holidaysData" type="application/json">{{ holidays_json|default:"{}"|safe }}</script>
+
+<script>
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+    const monthNames = ["January","February","March","April","May","June",
+                        "July","August","September","October","November","December"];
+
+    let busySlots = {};
+    let confirmedSlots = {};
+    let blockedSlots = {};
+    let holidaysMap = {};
+    try { busySlots = JSON.parse(document.getElementById('busyData').textContent.trim() || '{}'); } catch(e) {}
+    try { confirmedSlots = JSON.parse(document.getElementById('confirmedData').textContent.trim() || '{}'); } catch(e) {}
+    try { blockedSlots = JSON.parse(document.getElementById('blockedData').textContent.trim() || '{}'); } catch(e) {}
+    try { holidaysMap = JSON.parse(document.getElementById('holidaysData').textContent.trim() || '{}'); } catch(e) {}
+
+    const TOTAL_SLOTS = 17;
+
+    // Read previously-selected values (if the form was re-rendered after an error)
+    const dateInput  = document.querySelector('input[name="appointment_date"]');
+    const timeInput  = document.querySelector('input[name="appointment_time"]');
+    const initialDate = dateInput ? dateInput.value : '';
+    const initialTime = timeInput ? timeInput.value : '';
+
+    if (initialDate) {
+        const parts = initialDate.split('-');
+        if (parts.length === 3) {
+            currentYear  = parseInt(parts[0], 10);
+            currentMonth = parseInt(parts[1], 10) - 1;
+        }
+    }
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const header = document.getElementById('calendarMonthYear');
+        header.textContent = monthNames[currentMonth] + ' ' + currentYear;
+        grid.innerHTML = '';
+
+        ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => {
+            const label = document.createElement('div');
+            label.className = 'calendar-day-label';
+            label.textContent = d;
+            grid.appendChild(label);
+        });
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const today = new Date(); today.setHours(0,0,0,0);
+
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-day empty';
+            grid.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day';
+            cell.textContent = day;
+
+            const dateObj = new Date(currentYear, currentMonth, day);
+            dateObj.setHours(0,0,0,0);
+
+            // Past dates, weekends — closed
+            if (dateObj.getDay() === 0 || dateObj.getDay() === 6 || dateObj < today) {
+                cell.classList.add('closed');
+                grid.appendChild(cell);
+                continue;
+            }
+
+            const dateStr = formatDate(dateObj);
+
+            // Public holiday — closed with a tooltip
+            if (holidaysMap[dateStr]) {
+                cell.classList.add('closed');
+                cell.title = holidaysMap[dateStr];
+                grid.appendChild(cell);
+                continue;
+            }
+
+            const busy = busySlots[dateStr] || [];
+            const confirmed = confirmedSlots[dateStr] || [];
+            const blocked = blockedSlots[dateStr] || [];
+            const count = busy.length + blocked.length;
+
+            if (count >= TOTAL_SLOTS || confirmed.length >= 1) cell.classList.add('full');
+            else if (count >= 1) cell.classList.add('busy');
+            else cell.classList.add('available-green');
+
+            if (dateStr === initialDate) {
+                cell.classList.add('selected');
+            }
+
+            cell.onclick = () => selectDate(dateObj, cell);
+            grid.appendChild(cell);
+        }
+
+        // If we already had a date, render its time slots
+        if (initialDate) {
+            const parts = initialDate.split('-');
+            if (parts.length === 3) {
+                const d = new Date(parseInt(parts[0],10), parseInt(parts[1],10) - 1, parseInt(parts[2],10));
+                d.setHours(0,0,0,0);
+                renderTimeSlots(d);
+            }
+        }
+    }
+
+    function formatDate(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${dd}`;
+    }
+
+    function selectDate(dateObj, cell) {
+        document.querySelectorAll('.calendar-day').forEach(c => c.classList.remove('selected'));
+        cell.classList.add('selected');
+        const inp = document.querySelector('input[name="appointment_date"]');
+        if (inp) inp.value = formatDate(dateObj);
+        renderTimeSlots(dateObj);
+    }
+
+    function renderTimeSlots(dateObj) {
+        const container = document.getElementById('timeSlots');
+        const dateStr = formatDate(dateObj);
+
+        // Safety net: if the user somehow lands on a public holiday, say so
+        if (holidaysMap[dateStr]) {
+            container.innerHTML = `
+                <p class="text-muted small">
+                    <i class="fas fa-info-circle me-1"></i>
+                    ${holidaysMap[dateStr]} — the clinic is closed on this day.
+                    Please choose another date.
+                </p>`;
+            return;
+        }
+
+        const busy = busySlots[dateStr] || [];
+        const confirmed = confirmedSlots[dateStr] || [];
+        const blocked = blockedSlots[dateStr] || [];
+        container.innerHTML = '';
+
+        for (let hour = 9; hour <= 17; hour++) {
+            for (let min of [0, 30]) {
+                if (hour === 17 && min === 30) continue;
+                const timeStr = `${String(hour).padStart(2,'0')}:${String(min).padStart(2,'0')}`;
+                const slot = document.createElement('div');
+                slot.className = 'time-slot available';
+                slot.textContent = timeStr;
+
+                // Block the slot if it's busy (pending/confirmed appointment)
+                // OR if the doctor has blocked it.
+                if (busy.includes(timeStr) || blocked.includes(timeStr)) {
+                    slot.classList.remove('available');
+                    slot.classList.add(confirmed.includes(timeStr) ? 'booked' : 'hold');
+                } else {
+                    if (timeStr === initialTime) {
+                        slot.classList.add('selected');
+                    }
+                    slot.onclick = () => selectTimeSlot(timeStr, slot);
+                }
+                container.appendChild(slot);
+            }
+        }
+    }
+
+    function selectTimeSlot(timeStr, slot) {
+        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+        slot.classList.add('selected');
+        const inp = document.querySelector('input[name="appointment_time"]');
+        if (inp) inp.value = timeStr;
+    }
+
+    function changeMonth(delta) {
+        currentMonth += delta;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar();
+    }
+
+    document.addEventListener('DOMContentLoaded', renderCalendar);
+</script>
+
+{% endblock %}

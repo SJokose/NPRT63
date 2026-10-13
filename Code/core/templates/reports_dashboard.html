@@ -1,0 +1,463 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reports Dashboard - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== PAGE BACKGROUND ===== */
+    .page-bg {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    /* =====================================================
+       PAGE TITLE — WHITE
+       ===================================================== */
+    html body .page-title {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+    html body .page-title h1 {
+        font-weight: 800 !important;
+        font-size: 2rem !important;
+        color: #ffffff !important;
+        background: none !important;
+        background-image: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    html body .page-title p {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 0.95rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* =====================================================
+       STAT CARDS
+       ===================================================== */
+    .stat-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        border: 2px solid transparent;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1e3a8a, #2563eb);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 45px rgba(37, 99, 235, 0.3);
+        border-color: rgba(37, 99, 235, 0.2);
+    }
+    .stat-card:hover::before { opacity: 1; }
+
+    .stat-icon {
+        width: 60px; height: 60px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 18px;
+        color: white;
+        margin-bottom: 15px;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+    .stat-icon.purple { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    .stat-icon.blue   { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    .stat-icon.green  { background: linear-gradient(135deg, #11998e, #38ef7d); }
+    .stat-icon.orange { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+    .stat-icon i { font-size: 1.6rem; }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .stat-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #0b1e4d;
+        line-height: 1;
+    }
+
+    /* =====================================================
+       GLASS CARDS (solid white)
+       ===================================================== */
+    .glass-card {
+        background: #ffffff;
+        border-radius: 22px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+    .glass-card:hover { box-shadow: 0 15px 45px rgba(37, 99, 235, 0.25); }
+    .glass-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+        padding: 20px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .glass-card .card-header h5 {
+        font-weight: 700;
+        color: #0b1e4d;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .glass-card .card-header h5 i {
+        color: #2563eb !important;
+        background: none !important;
+        -webkit-text-fill-color: #2563eb !important;
+        font-size: 1.2rem;
+    }
+
+    /* =====================================================
+       WEEKLY CHART — BLUE BARS
+       ===================================================== */
+    .chart-wrapper {
+        padding: 30px 25px;
+        height: 300px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-around;
+        gap: 15px;
+    }
+    .bar-container {
+        flex: 1;
+        max-width: 80px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100%;
+        justify-content: flex-end;
+    }
+    .bar {
+        width: 100%;
+        background: linear-gradient(180deg, #60a5fa, #2563eb);
+        border-radius: 10px 10px 0 0;
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        min-height: 8px;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+    }
+    .bar:hover {
+        background: linear-gradient(180deg, #2563eb, #1e3a8a);
+        transform: scaleY(1.05);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.5);
+    }
+    .bar-value {
+        position: absolute;
+        top: -25px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 0.85rem;
+        font-weight: 800;
+        color: #2563eb;
+        background: white;
+        padding: 2px 8px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        white-space: nowrap;
+    }
+    .bar-label {
+        margin-top: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* =====================================================
+       REPORT LINKS
+       ===================================================== */
+    .report-link {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        text-decoration: none;
+        color: #0b1e4d;
+        transition: all 0.3s;
+    }
+    .report-link:last-child { border-bottom: none; }
+    .report-link:hover {
+        background: linear-gradient(90deg, rgba(37, 99, 235, 0.06), transparent);
+        color: #0b1e4d;
+        padding-left: 30px;
+    }
+    .report-link .rl-icon {
+        width: 48px; height: 48px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        display: flex; align-items: center; justify-content: center;
+        color: white;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+    }
+    .report-link .rl-text h6 {
+        font-weight: 700;
+        margin: 0 0 4px 0;
+        font-size: 0.95rem;
+        color: #0b1e4d;
+    }
+    .report-link .rl-text p {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+    .report-link .rl-arrow {
+        margin-left: auto;
+        color: #2563eb;
+        font-size: 1.2rem;
+        transition: transform 0.3s;
+    }
+    .report-link:hover .rl-arrow {
+        transform: translateX(5px);
+    }
+
+    /* =====================================================
+       INSIGHT ITEMS (right column)
+       ===================================================== */
+    .insight-icon {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        color: white;
+        flex-shrink: 0;
+        margin-right: 15px;
+    }
+    .insight-icon.blue   { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    .insight-icon.green  { background: linear-gradient(135deg, #11998e, #38ef7d); }
+    .insight-icon.orange { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+    .insight-icon i { font-size: 1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg">
+    <div class="container page-content">
+
+        <div class="page-title">
+            <h1><i class="fas fa-chart-line me-2"></i>Reports Dashboard</h1>
+            <p>Analytics and insights for MediSync SA</p>
+        </div>
+
+        <!-- ===== STAT CARDS ===== -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+                    <p class="stat-label">Total Patients</p>
+                    <div class="stat-value">{{ total_patients }}</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="fas fa-calendar-alt"></i></div>
+                    <p class="stat-label">Total Appointments</p>
+                    <div class="stat-value">{{ total_appointments }}</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="fas fa-check-circle"></i></div>
+                    <p class="stat-label">Completed</p>
+                    <div class="stat-value">{{ completed_appointments }}</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="fas fa-percentage"></i></div>
+                    <p class="stat-label">Completion Rate</p>
+                    <div class="stat-value">
+                        {% if total_appointments > 0 %}
+                            {% widthratio completed_appointments total_appointments 100 %}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== WEEKLY CHART ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar"></i> Weekly Completions</h5>
+                <small class="text-muted">This week's appointment completions</small>
+            </div>
+            <div class="chart-wrapper" id="weeklyChart">
+                <!-- Bars filled by JS -->
+            </div>
+        </div>
+
+        <!-- ===== DETAILED REPORTS ===== -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-file-alt"></i> Detailed Reports</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <a href="{% url 'core:appointment_report' %}" class="report-link">
+                            <div class="rl-icon"><i class="fas fa-calendar-check"></i></div>
+                            <div class="rl-text">
+                                <h6>Appointment Report</h6>
+                                <p>View all appointments with filters and details</p>
+                            </div>
+                            <i class="fas fa-arrow-right rl-arrow"></i>
+                        </a>
+                        <a href="{% url 'core:patient_activity_report' %}" class="report-link">
+                            <div class="rl-icon"><i class="fas fa-user-check"></i></div>
+                            <div class="rl-text">
+                                <h6>Patient Activity Report</h6>
+                                <p>See patient engagement and visit history</p>
+                            </div>
+                            <i class="fas fa-arrow-right rl-arrow"></i>
+                        </a>
+                        <a href="{% url 'core:weekly_summary_report' %}" class="report-link">
+                            <div class="rl-icon"><i class="fas fa-chart-pie"></i></div>
+                            <div class="rl-text">
+                                <h6>Weekly Summary</h6>
+                                <p>Compact weekly overview of all activity</p>
+                            </div>
+                            <i class="fas fa-arrow-right rl-arrow"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-lightbulb"></i> Quick Insights</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="insight-icon blue">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-bold">Completion Rate</h6>
+                                <p class="small text-muted mb-0">
+                                    {% if total_appointments > 0 %}
+                                        {% widthratio completed_appointments total_appointments 100 %}% of all appointments have been completed.
+                                    {% else %}
+                                        No appointments recorded yet.
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start mb-3">
+                            <div class="insight-icon green">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-bold">Patient Base</h6>
+                                <p class="small text-muted mb-0">
+                                    You have {{ total_patients }} registered patient{{ total_patients|pluralize }} in the system.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start">
+                            <div class="insight-icon orange">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1 fw-bold">Peak Activity</h6>
+                                <p class="small text-muted mb-0">
+                                    Track appointment trends throughout the week to optimize scheduling.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Data for chart -->
+<script id="weeklyData" type="application/json">{{ weekly_data|safe }}</script>
+
+<script>
+    // ===== WEEKLY CHART =====
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('weeklyChart');
+        const dataEl = document.getElementById('weeklyData');
+
+        let weeklyData = [];
+        try {
+            const raw = dataEl.textContent.trim();
+            weeklyData = raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            console.error('Failed to parse weekly data:', e);
+            weeklyData = [];
+        }
+
+        if (!weeklyData.length) {
+            container.innerHTML = '<div style="width:100%;text-align:center;padding:60px;color:#94a3b8;">No data available yet</div>';
+            return;
+        }
+
+        const maxVal = Math.max(...weeklyData.map(d => d.count), 1);
+
+        weeklyData.forEach(function(item) {
+            const barContainer = document.createElement('div');
+            barContainer.className = 'bar-container';
+
+            const heightPercent = item.count === 0 ? 5 : Math.max(15, (item.count / maxVal) * 90);
+
+            const bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = heightPercent + '%';
+
+            if (item.count > 0) {
+                const valueBadge = document.createElement('span');
+                valueBadge.className = 'bar-value';
+                valueBadge.textContent = item.count;
+                bar.appendChild(valueBadge);
+            }
+
+            const label = document.createElement('div');
+            label.className = 'bar-label';
+            label.textContent = item.day.substring(0, 3);
+
+            barContainer.appendChild(bar);
+            barContainer.appendChild(label);
+            container.appendChild(barContainer);
+        });
+    });
+</script>
+
+{% endblock %}

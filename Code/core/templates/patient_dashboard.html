@@ -1,0 +1,529 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patient Dashboard - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== BACKGROUND PICTURE ===== */
+    .bg-picture {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('{% static "images/background.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: 0;
+    }
+    .bg-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.75), rgba(15, 40, 80, 0.65));
+        z-index: 1;
+    }
+
+    .dashboard-bg {
+        position: relative;
+        z-index: 2;
+        min-height: calc(100vh - 80px);
+        padding: 30px 0;
+    }
+
+    /* ===== WELCOME BANNER ===== */
+    .welcome-banner {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        border-radius: 25px;
+        padding: 35px 40px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
+    }
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: -60%; right: -10%;
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: shimmer 8s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+        0%, 100% { transform: translate(0, 0); }
+        50%      { transform: translate(15%, 15%); }
+    }
+    .welcome-banner h2, .welcome-banner p, .welcome-banner small, .welcome-banner div {
+        position: relative; z-index: 1;
+    }
+
+    /* ===== STAT CARDS ===== */
+    .stat-card {
+        background: #ffffff;
+        border: 1px solid rgba(37, 99, 235, 0.12);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 45px rgba(37, 99, 235, 0.35);
+        border-color: rgba(37, 99, 235, 0.25);
+    }
+    .stat-card .stat-icon {
+        width: 60px; height: 60px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        color: white;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+    .stat-card .stat-icon i { font-size: 1.6rem; }
+    .stat-value {
+        font-size: 2.2rem;
+        font-weight: 700;
+        color: #0b1e4d;
+        line-height: 1;
+        margin: 4px 0;
+    }
+    .stat-label {
+        color: #64748b;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* ===== GLASS CARDS ===== */
+    .glass-card {
+        background: #ffffff;
+        border: 1px solid rgba(37, 99, 235, 0.12);
+        border-radius: 22px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .glass-card:hover {
+        box-shadow: 0 15px 45px rgba(37, 99, 235, 0.3);
+        border-color: rgba(37, 99, 235, 0.25);
+    }
+    .glass-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.1);
+        padding: 20px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .glass-card .card-header h5 {
+        font-weight: 700;
+        color: #0b1e4d;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .glass-card .card-header h5 i {
+        color: #2563eb;
+        font-size: 1.2rem;
+    }
+
+    /* ===== APPOINTMENT ITEMS ===== */
+    .appointment-item {
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.08);
+        transition: all 0.3s ease;
+    }
+    .appointment-item:last-child { border-bottom: none; }
+    .appointment-item:hover {
+        background: rgba(37, 99, 235, 0.04);
+        padding-left: 30px;
+    }
+    .appointment-item h6 {
+        color: #0b1e4d;
+    }
+    .appointment-item .text-muted {
+        color: #64748b !important;
+    }
+    .appointment-avatar {
+        width: 50px; height: 50px; border-radius: 15px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.2rem;
+        box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+        flex-shrink: 0;
+    }
+
+    /* ===== STATUS BADGES ===== */
+    .status-badge {
+        padding: 6px 14px; border-radius: 20px;
+        font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 0.5px; text-transform: uppercase;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+    .status-badge.confirmed { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+    .status-badge.pending   { background: linear-gradient(135deg, #f2994a, #f2c94c); color: white; }
+    .status-badge.completed { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; }
+    .status-badge.cancelled, .status-badge.missed { background: linear-gradient(135deg, #eb3349, #f45c43); color: white; }
+
+    /* ===== BUTTONS ===== */
+    .btn-gradient {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        border: none; color: white !important; border-radius: 12px;
+        padding: 12px 20px; font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+        color: white !important;
+    }
+
+    .btn-outline-gradient {
+        background: transparent;
+        border: 2px solid #2563eb;
+        color: #2563eb !important;
+        border-radius: 12px;
+        padding: 10px 18px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white !important;
+        border-color: transparent;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    /* ===== HEALTH TIP ===== */
+    .health-tip {
+        background: rgba(37, 99, 235, 0.06);
+        border-left: 4px solid #2563eb;
+        border-radius: 12px;
+        padding: 18px;
+        color: #334155;
+    }
+    .health-tip p { color: #334155; }
+
+    /* ===== SMS BADGE ===== */
+    .sms-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        min-width: 45px; padding: 6px 12px;
+        border-radius: 25px; font-size: 0.75rem; font-weight: 700;
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    /* ===== FOLLOW-UP ITEM ===== */
+    .followup-item {
+        padding: 16px 20px;
+        background: #f8fafc;
+        border-left: 5px solid #2563eb;
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+    .followup-item .due-date {
+        font-weight: 800;
+        color: #0b1e4d;
+        font-size: 1rem;
+    }
+    .followup-item .reason {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-top: 4px;
+    }
+    .followup-item .doc-name {
+        color: #64748b;
+        font-size: 0.8rem;
+        margin-top: 4px;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state-icon {
+        width: 100px; height: 100px; border-radius: 50%;
+        background: rgba(37, 99, 235, 0.1);
+        display: inline-flex; align-items: center; justify-content: center;
+        margin-bottom: 20px;
+        animation: pulse 2s ease-in-out infinite;
+    }
+    .empty-state-icon i {
+        font-size: 2.5rem;
+        color: #2563eb;
+    }
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50%      { transform: scale(1.05); }
+    }
+
+    /* ===== TEXT FIXES ===== */
+    .dashboard-bg .text-muted {
+        color: #64748b !important;
+    }
+    .dashboard-bg h5 {
+        color: #0b1e4d;
+    }
+    .dashboard-bg .alert-info {
+        background: #eff6ff;
+        color: #1e40af;
+        border: none;
+    }
+
+    /* ===== FADE IN ===== */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up { animation: fadeInUp 0.6s ease-out forwards; }
+    .fade-in-up:nth-child(1) { animation-delay: 0.05s; }
+    .fade-in-up:nth-child(2) { animation-delay: 0.1s;  }
+    .fade-in-up:nth-child(3) { animation-delay: 0.15s; }
+    .fade-in-up:nth-child(4) { animation-delay: 0.2s;  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="bg-picture"></div>
+<div class="bg-overlay"></div>
+
+<div class="dashboard-bg">
+    <div class="container">
+
+        <div class="welcome-banner mb-4 fade-in-up">
+            <div class="d-flex justify-content-between align-items-center flex-wrap">
+                <div>
+                    <h2 class="mb-2 fw-bold">
+                        Welcome back, {{ user.first_name }}!
+                    </h2>
+                    <p class="mb-0 opacity-90">
+                        <i class="fas fa-id-card me-2"></i>SA ID: {{ user.sa_id_number }}
+                        {% if user.date_of_birth %}
+                            <span class="ms-3"><i class="fas fa-birthday-cake me-2"></i>{{ user.date_of_birth }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="text-end mt-3 mt-md-0">
+                    <small class="opacity-75 d-block">Last login</small>
+                    <strong>{{ user.last_login|date:"d M Y, H:i" }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-xl-3 col-md-6 fade-in-up">
+                <div class="stat-card h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    </div>
+                    <p class="stat-label mb-1">Total Consultations</p>
+                    <div class="stat-value">{{ total_appointments }}</div>
+                    <small style="color:#059669; font-weight:600;"><i class="fas fa-arrow-up me-1"></i>All time</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 fade-in-up">
+                <div class="stat-card h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    </div>
+                    <p class="stat-label mb-1">Completed Visits</p>
+                    <div class="stat-value">{{ completed_visits }}</div>
+                    <small style="color:#64748b;"><i class="fas fa-check me-1"></i>Finished</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 fade-in-up">
+                <div class="stat-card h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    </div>
+                    <p class="stat-label mb-1">Upcoming Scheduled</p>
+                    <div class="stat-value">{{ upcoming_count }}</div>
+                    <small style="color:#64748b;"><i class="fas fa-hourglass-half me-1"></i>Pending</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 fade-in-up">
+                <div class="stat-card h-100">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div class="stat-icon"><i class="fas fa-id-card"></i></div>
+                    </div>
+                    <p class="stat-label mb-1">Patient ID</p>
+                    <div class="fw-bold" style="font-size: 1rem; letter-spacing: 0.5px; color: #0b1e4d;">{{ patient_id }}</div>
+                    <small style="color:#059669; font-weight:600;"><i class="fas fa-shield-alt me-1"></i>Verified</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="glass-card h-100">
+                    <div class="card-header">
+                        <h5><i class="fas fa-calendar-alt"></i> Recent Appointments</h5>
+                        <a href="{% url 'core:my_appointments' %}" class="btn btn-outline-gradient btn-sm">
+                            View All <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if upcoming_appointments %}
+                            {% for appointment in upcoming_appointments %}
+                                <div class="appointment-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <div class="appointment-avatar me-3">
+                                                <i class="fas fa-user-md"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">{{ appointment.doctor.get_doctor_display }}</h6>
+                                                <p class="text-muted mb-2 small">
+                                                    <i class="far fa-calendar-alt me-1"></i>{{ appointment.appointment_date|date:"l, d F Y" }}
+                                                    <span class="mx-2">•</span>
+                                                    <i class="far fa-clock me-1"></i>{{ appointment.appointment_time|time:"H:i" }}
+                                                </p>
+                                                <span class="status-badge {{ appointment.status }}">
+                                                    <i class="fas fa-circle" style="font-size: 6px;"></i>
+                                                    {{ appointment.status|upper }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <a href="{% url 'core:cancel_appointment' appointment.id %}"
+                                           class="btn btn-sm btn-outline-danger rounded-circle"
+                                           onclick="return confirm('Are you sure you want to cancel this appointment?')"
+                                           title="Cancel Appointment">
+                                            <i class="fas fa-times"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </div>
+                                <h5 class="text-muted" style="color:#0b1e4d !important;">No appointments yet</h5>
+                                <p class="text-muted small mb-4">You haven't booked any appointments yet.</p>
+                                <a href="{% url 'core:book_appointment' %}" class="btn btn-gradient">
+                                    <i class="fas fa-plus me-2"></i>Book Your First Appointment
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <!-- ===== FOLLOW-UPS CARD ===== -->
+                <div class="glass-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-calendar-check"></i> Follow-ups</h5>
+                        <a href="{% url 'core:my_followups' %}" class="btn btn-outline-gradient btn-sm">
+                            View All
+                        </a>
+                    </div>
+                    <div class="card-body p-3">
+                        {% if followup_preview %}
+                            {% for f in followup_preview %}
+                                <div class="followup-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <div class="due-date">
+                                                <i class="far fa-calendar-alt me-1" style="color:#2563eb;"></i>
+                                                {{ f.due_date }}
+                                            </div>
+                                            <div class="reason">{{ f.reason|truncatechars:80 }}</div>
+                                            <div class="doc-name">
+                                                By {{ f.doctor.get_doctor_display }}
+                                            </div>
+                                        </div>
+                                        <span style="padding:4px 10px; border-radius:12px; font-size:0.7rem; font-weight:700;
+                                            {% if f.status == 'due' %}background:#fef3c7; color:#78350f;
+                                            {% elif f.status == 'completed' %}background:#dcfce7; color:#14532d;
+                                            {% elif f.status == 'cancelled' %}background:#fee2e2; color:#991b1b;
+                                            {% else %}background:#dbeafe; color:#1e3a8a;{% endif %}">
+                                            {{ f.get_status_display|upper }}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-muted small text-center py-3 mb-0">
+                                No follow-ups recommended.
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="glass-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'core:book_appointment' %}" class="btn btn-gradient">
+                                <i class="fas fa-plus-circle me-2"></i>Book Appointment
+                            </a>
+                            <a href="{% url 'core:my_appointments' %}" class="btn btn-outline-gradient">
+                                <i class="fas fa-list me-2"></i>View All Appointments
+                            </a>
+                            <a href="{% url 'core:my_followups' %}" class="btn btn-outline-gradient">
+                                <i class="fas fa-calendar-check me-2"></i>My Follow-ups
+                            </a>
+                            <a href="{% url 'core:view_profile' %}" class="btn btn-outline-gradient">
+                                <i class="fas fa-user-edit me-2"></i>Update Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== HEALTH TIP ===== -->
+                <div class="glass-card mb-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-heart"></i> Health Tip</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <div class="health-tip">
+                            <p class="mb-0 small fst-italic">
+                                <i class="fas fa-quote-left me-2" style="color:#2563eb;"></i>
+                                {{ health_tip }}
+                                <i class="fas fa-quote-right ms-2" style="color:#2563eb;"></i>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-sms"></i> SMS Reminders</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <p class="small text-muted mb-3">You'll receive reminders at:</p>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="sms-badge me-2">72h</span>
+                            <small class="text-muted">Before appointment</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="sms-badge me-2">24h</span>
+                            <small class="text-muted">Before appointment</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <span class="sms-badge me-2">2h</span>
+                            <small class="text-muted">Before appointment</small>
+                        </div>
+                        <div class="alert alert-info small mb-0 rounded-3 border-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Keep your phone number updated.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

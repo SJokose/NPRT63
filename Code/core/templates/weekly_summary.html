@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Weekly Summary - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
+    .page-bg {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+    }
+    .page-content { position: relative; z-index: 2; }
+    .breadcrumb-nav {
+        display: flex; align-items: center; gap: 10px;
+        color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 20px;
+    }
+    .breadcrumb-nav a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    .breadcrumb-nav a:hover { color: white; }
+    .page-title { text-align: center; color: white; margin-bottom: 30px; }
+    .page-title h1 {
+        font-weight: 800; font-size: 1.8rem;
+        background: linear-gradient(135deg, #a78bfa, #667eea);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .week-range {
+        text-align: center;
+        color: rgba(255,255,255,0.65);
+        font-size: 0.9rem;
+        margin-top: -15px;
+        margin-bottom: 25px;
+    }
+    .glass-card {
+        background: rgba(255,255,255,0.98);
+        border-radius: 22px;
+        padding: 30px 35px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+        margin-bottom: 24px;
+    }
+    .btn-outline {
+        background: transparent; border: 2px solid #667eea;
+        color: #667eea; border-radius: 12px;
+        padding: 10px 20px; font-weight: 700;
+        transition: all 0.3s; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 0.9rem;
+    }
+    .btn-outline:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; border-color: transparent;
+    }
+    .stat-tile {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        border: 2px solid #e8eaf2;
+        text-align: center;
+        height: 100%;
+    }
+    .stat-tile .st-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .stat-tile .st-label {
+        font-size: 0.7rem; font-weight: 700; color: #888;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        margin-top: 6px;
+    }
+    .stat-tile.purple .st-value { color: #667eea; }
+    .stat-tile.green  .st-value { color: #11998e; }
+    .stat-tile.orange .st-value { color: #f2994a; }
+    .stat-tile.red    .st-value { color: #eb3349; }
+
+    /* Day rows */
+    .day-row {
+        display: flex;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid #f0f2fa;
+        transition: all 0.2s;
+    }
+    .day-row:hover { background: rgba(102,126,234,0.04); }
+    .day-row:last-child { border-bottom: none; }
+    .day-name {
+        flex: 0 0 130px;
+        font-weight: 800;
+        color: #1a1a2e;
+        font-size: 0.95rem;
+    }
+    .day-date {
+        flex: 0 0 120px;
+        color: #888;
+        font-size: 0.85rem;
+    }
+    .day-stats {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        flex: 1;
+    }
+    .day-chip {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .day-chip.total     { background: rgba(102,126,234,0.12); color: #667eea; }
+    .day-chip.completed { background: rgba(17,153,142,0.12); color: #11998e; }
+    .day-chip.pending   { background: rgba(242,153,74,0.15); color: #d97a1e; }
+    .day-chip.cancelled { background: rgba(235,51,73,0.12); color: #eb3349; }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: #888; }
+    .empty-state i { font-size: 3rem; color: #ccc; margin-bottom: 15px; display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+    <div class="container page-content">
+
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:reports_dashboard' %}"><i class="fas fa-home me-1"></i> Reports</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span style="color: white; font-weight: 600;">Weekly Summary</span>
+        </div>
+
+        <div class="page-title">
+            <h1><i class="fas fa-chart-pie me-2"></i>Weekly Summary</h1>
+            <p class="text-white-50">Compact weekly overview of all activity</p>
+        </div>
+        <p class="week-range">
+            <i class="far fa-calendar-alt me-1"></i>
+            {{ week_start|date:"d M Y" }} → {{ week_end|date:"d M Y" }}
+        </p>
+
+        <!-- Weekly totals -->
+        <div class="glass-card">
+            <div class="row g-3">
+                <div class="col-md-3 col-6">
+                    <div class="stat-tile purple">
+                        <div class="st-value">{{ week_total }}</div>
+                        <div class="st-label">Total This Week</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-tile green">
+                        <div class="st-value">{{ week_completed }}</div>
+                        <div class="st-label">Completed</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-tile orange">
+                        <div class="st-value">{{ week_pending }}</div>
+                        <div class="st-label">Pending</div>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-tile red">
+                        <div class="st-value">{{ week_cancelled }}</div>
+                        <div class="st-label">Cancelled / Missed</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Day breakdown -->
+        <div class="glass-card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 20px 25px; border-bottom: 1px solid #f0f2fa;">
+                <h5 style="font-weight: 800; color: #1a1a2e; margin: 0;">
+                    <i class="fas fa-calendar-week me-2" style="color: #667eea;"></i>
+                    Day-by-Day Breakdown
+                </h5>
+            </div>
+
+            {% for d in week_days %}
+                <div class="day-row">
+                    <div class="day-name">{{ d.day_name }}</div>
+                    <div class="day-date">{{ d.date|date:"d M Y" }}</div>
+                    <div class="day-stats">
+                        <span class="day-chip total">{{ d.total }} total</span>
+                        <span class="day-chip completed">{{ d.completed }} completed</span>
+                        <span class="day-chip pending">{{ d.pending }} pending</span>
+                        <span class="day-chip cancelled">{{ d.cancelled }} cancelled</span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'core:reports_dashboard' %}" class="btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Reports
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

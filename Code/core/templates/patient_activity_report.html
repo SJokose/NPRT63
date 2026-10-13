@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patient Activity Report - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
+    .page-bg {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+    }
+    .page-content { position: relative; z-index: 2; }
+    .breadcrumb-nav {
+        display: flex; align-items: center; gap: 10px;
+        color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 20px;
+    }
+    .breadcrumb-nav a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    .breadcrumb-nav a:hover { color: white; }
+    .page-title { text-align: center; color: white; margin-bottom: 30px; }
+    .page-title h1 {
+        font-weight: 800; font-size: 1.8rem;
+        background: linear-gradient(135deg, #a78bfa, #667eea);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .glass-card {
+        background: rgba(255,255,255,0.98);
+        border-radius: 22px;
+        padding: 30px 35px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+        margin-bottom: 24px;
+    }
+    .btn-outline {
+        background: transparent; border: 2px solid #667eea;
+        color: #667eea; border-radius: 12px;
+        padding: 10px 20px; font-weight: 700;
+        transition: all 0.3s; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 0.9rem;
+    }
+    .btn-outline:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; border-color: transparent;
+    }
+    .stat-tile {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        border: 2px solid #e8eaf2;
+        text-align: center;
+        height: 100%;
+    }
+    .stat-tile .st-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+    .stat-tile .st-label {
+        font-size: 0.7rem; font-weight: 700; color: #888;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        margin-top: 6px;
+    }
+    .stat-tile.purple .st-value { color: #667eea; }
+    .stat-tile.green  .st-value { color: #11998e; }
+    .stat-tile.orange .st-value { color: #f2994a; }
+
+    .activity-table { width: 100%; border-collapse: collapse; }
+    .activity-table th {
+        text-align: left;
+        padding: 14px 16px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid #e8eaf2;
+        background: #f8f9fc;
+    }
+    .activity-table td {
+        padding: 16px;
+        border-bottom: 1px solid #f0f2fa;
+        font-size: 0.9rem;
+        color: #1a1a2e;
+        vertical-align: middle;
+    }
+    .activity-table tr:hover td { background: rgba(102,126,234,0.04); }
+
+    .patient-cell { display: flex; align-items: center; gap: 12px; }
+    .patient-avatar-sm {
+        width: 38px; height: 38px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 0.85rem; font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    .badge.active   { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+    .badge.inactive { background: #eee; color: #888; }
+
+    .empty-state { text-align: center; padding: 50px 20px; color: #888; }
+    .empty-state i { font-size: 3rem; color: #ccc; margin-bottom: 15px; display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+    <div class="container page-content">
+
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:reports_dashboard' %}"><i class="fas fa-home me-1"></i> Reports</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span style="color: white; font-weight: 600;">Patient Activity Report</span>
+        </div>
+
+        <div class="page-title">
+            <h1><i class="fas fa-user-check me-2"></i>Patient Activity Report</h1>
+            <p class="text-white-50">See patient engagement and visit history</p>
+        </div>
+
+        <!-- Stats -->
+        <div class="glass-card">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="stat-tile purple">
+                        <div class="st-value">{{ total_patients }}</div>
+                        <div class="st-label">Total Patients</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-tile green">
+                        <div class="st-value">{{ active_patients }}</div>
+                        <div class="st-label">Active Patients</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-tile orange">
+                        <div class="st-value">{{ total_completed }}</div>
+                        <div class="st-label">Completed Visits</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Patient Table -->
+        <div class="glass-card" style="padding: 0; overflow: hidden;">
+            {% if patients %}
+                <div style="overflow-x: auto;">
+                    <table class="activity-table">
+                        <thead>
+                            <tr>
+                                <th>Patient</th>
+                                <th>SA ID</th>
+                                <th>Total Visits</th>
+                                <th>Completed</th>
+                                <th>Last Visit</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in patients %}
+                                <tr>
+                                    <td>
+                                        <div class="patient-cell">
+                                            <div class="patient-avatar-sm">
+                                                {{ p.first_name|first|upper }}{{ p.last_name|first|upper }}
+                                            </div>
+                                            <div>
+                                                <strong>{{ p.get_full_name }}</strong>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>{{ p.sa_id_number }}</td>
+                                    <td>{{ p.total_appointments }}</td>
+                                    <td>{{ p.completed_appointments }}</td>
+                                    <td>
+                                        {% if p.last_visit %}
+                                            {{ p.last_visit|date:"d M Y" }}
+                                        {% else %}
+                                            <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if p.total_appointments > 0 %}
+                                            <span class="badge active">Active</span>
+                                        {% else %}
+                                            <span class="badge inactive">No Visits</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-users"></i>
+                    <h5 class="text-muted">No patients yet</h5>
+                    <p class="small">No registered patients to show.</p>
+                    <a href="{% url 'core:reports_dashboard' %}" class="btn-outline mt-3">
+                        <i class="fas fa-arrow-left"></i> Back to Reports
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

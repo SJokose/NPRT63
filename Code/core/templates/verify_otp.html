@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verify OTP - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .bg-picture {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('{% static "images/background.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: 0;
+    }
+    .bg-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.75), rgba(15, 40, 80, 0.65));
+        z-index: 1;
+    }
+    .otp-page {
+        position: relative;
+        z-index: 2;
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+    }
+    .otp-wrapper {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        max-width: 480px;
+        width: 100%;
+        padding: 45px 40px;
+        text-align: center;
+    }
+    .otp-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+    }
+    .otp-wrapper h3 {
+        color: #ffffff;
+        font-weight: 700;
+        font-size: 1.5rem;
+        margin-bottom: 5px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+    .otp-wrapper .subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.9rem;
+        margin-bottom: 25px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===== OTP BOXES — _ _ _ _ _ _ style ===== */
+    .otp-boxes {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin: 25px 0;
+    }
+    .otp-boxes input {
+        width: 50px;
+        height: 60px;
+        border: none;
+        border-bottom: 3px solid rgba(255, 255, 255, 0.5);
+        background: transparent;
+        color: #ffffff;
+        font-size: 2rem;
+        font-weight: 700;
+        text-align: center;
+        outline: none;
+        transition: all 0.3s;
+        caret-color: #93c5fd;
+        border-radius: 0;
+    }
+    .otp-boxes input:focus {
+        border-bottom-color: #3b82f6;
+        box-shadow: 0 4px 12px -6px rgba(59, 130, 246, 0.8);
+    }
+    .otp-boxes input.filled {
+        border-bottom-color: #93c5fd;
+    }
+    .otp-boxes input::placeholder {
+        color: transparent;
+    }
+    .otp-boxes input::-webkit-outer-spin-button,
+    .otp-boxes input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    .otp-wrapper .btn-verify {
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 14px;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        margin-top: 10px;
+    }
+    .otp-wrapper .btn-verify:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(37, 99, 235, 0.6);
+        color: white;
+    }
+    .otp-wrapper .back-link {
+        display: inline-block;
+        margin-top: 20px;
+        color: #93c5fd;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    .otp-wrapper .back-link:hover {
+        text-decoration: underline;
+    }
+    .otp-wrapper .alert {
+        border-radius: 10px;
+        font-size: 0.8rem;
+        padding: 10px 14px;
+        margin-bottom: 15px;
+    }
+
+    @media (max-width: 576px) {
+        .otp-wrapper {
+            padding: 30px 20px;
+        }
+        .otp-boxes {
+            gap: 6px;
+        }
+        .otp-boxes input {
+            width: 40px;
+            height: 50px;
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="bg-picture"></div>
+<div class="bg-overlay"></div>
+
+<div class="otp-page">
+    <div class="otp-wrapper">
+        <div class="otp-icon">
+            <i class="fas fa-shield-alt"></i>
+        </div>
+
+        <h3>Verify OTP</h3>
+        <p class="subtitle">
+            Enter the 6-digit code sent to<br>
+            <strong style="color: #93c5fd;">{{ phone_number }}</strong>
+        </p>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" id="otpForm">
+            {% csrf_token %}
+
+            <!-- Hidden input that Django will read -->
+            <input type="hidden" name="otp_code" id="otp_hidden">
+
+            <!-- Visible underline boxes -->
+            <div class="otp-boxes">
+                <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+                <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="off">
+            </div>
+
+            {% if form.otp_code.errors %}
+                <div class="alert alert-danger">
+                    {% for error in form.otp_code.errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <button type="submit" class="btn-verify">
+                <i class="fas fa-check-circle me-2"></i>Verify OTP
+            </button>
+        </form>
+
+        <a href="{% url 'core:login' %}" class="back-link">
+            <i class="fas fa-arrow-left me-1"></i>Back to Login
+        </a>
+    </div>
+</div>
+
+<script>
+    // ===== OTP BOX AUTO-ADVANCE + SUBMIT =====
+    document.addEventListener('DOMContentLoaded', function () {
+        const boxes = document.querySelectorAll('.otp-boxes input');
+        const hidden = document.getElementById('otp_hidden');
+        const form = document.getElementById('otpForm');
+
+        function updateHidden() {
+            let code = '';
+            boxes.forEach(b => code += b.value);
+            hidden.value = code;
+        }
+
+        boxes.forEach((box, index) => {
+            // Only allow digits
+            box.addEventListener('input', function (e) {
+                this.value = this.value.replace(/[^0-9]/g, '');
+
+                if (this.value.length === 1) {
+                    this.classList.add('filled');
+                    // Move to next box
+                    if (index < boxes.length - 1) {
+                        boxes[index + 1].focus();
+                    }
+                } else {
+                    this.classList.remove('filled');
+                }
+
+                updateHidden();
+            });
+
+            // Handle backspace
+            box.addEventListener('keydown', function (e) {
+                if (e.key === 'Backspace' && this.value === '' && index > 0) {
+                    boxes[index - 1].focus();
+                }
+            });
+
+            // Handle paste (e.g., paste "123456")
+            box.addEventListener('paste', function (e) {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+                if (pasted.length >= 6) {
+                    boxes.forEach((b, i) => {
+                        if (i < pasted.length) {
+                            b.value = pasted[i];
+                            b.classList.add('filled');
+                        }
+                    });
+                    updateHidden();
+                    boxes[boxes.length - 1].focus();
+                }
+            });
+        });
+
+        // Focus first box on load
+        boxes[0].focus();
+    });
+</script>
+
+{% endblock %}

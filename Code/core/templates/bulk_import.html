@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Bulk Import Users - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
+
+    .page-bg {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+    }
+    .page-content { position: relative; z-index: 2; }
+
+    .breadcrumb-nav {
+        display: flex; align-items: center; gap: 10px;
+        color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 20px;
+    }
+    .breadcrumb-nav a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    .breadcrumb-nav a:hover { color: white; }
+
+    .page-title { text-align: center; color: white; margin-bottom: 30px; }
+    .page-title h1 {
+        font-weight: 800; font-size: 1.8rem;
+        background: linear-gradient(135deg, #a78bfa, #f0abfc);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .glass-card {
+        background: rgba(255,255,255,0.98);
+        border-radius: 22px;
+        padding: 35px 40px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+    }
+
+    .form-label-custom {
+        font-size: 0.8rem; font-weight: 700; color: #1a1a2e;
+        text-transform: uppercase; letter-spacing: 1px;
+        margin-bottom: 8px; display: block;
+    }
+    .form-control {
+        border-radius: 12px; border: 2px solid #e8eaf2;
+        padding: 12px 16px; font-size: 0.95rem;
+        background: #f8f9fc; transition: all 0.3s;
+    }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102,126,234,0.12);
+        background: white;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none; color: white; border-radius: 12px;
+        padding: 14px 28px; font-weight: 700; font-size: 1rem;
+        transition: all 0.3s; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102,126,234,0.45);
+        color: white;
+    }
+    .btn-outline-gradient {
+        background: transparent; border: 2px solid #667eea;
+        color: #667eea; border-radius: 12px;
+        padding: 12px 24px; font-weight: 700;
+        transition: all 0.3s; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; border-color: transparent;
+    }
+
+    .csv-guide {
+        background: linear-gradient(135deg, rgba(102,126,234,0.08), rgba(118,75,162,0.08));
+        border-left: 4px solid #667eea;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 25px;
+    }
+    .csv-guide h6 {
+        font-weight: 800; color: #1a1a2e;
+        margin: 0 0 10px 0;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .csv-guide h6 i { color: #667eea; }
+    .csv-guide ul { margin: 0; padding-left: 20px; font-size: 0.85rem; color: #555; }
+    .csv-guide li { margin-bottom: 4px; }
+    .csv-guide code {
+        background: white; padding: 2px 6px;
+        border-radius: 6px; color: #667eea;
+        font-size: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg">
+    <div class="container page-content">
+
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:staff_dashboard' %}"><i class="fas fa-home me-1"></i> Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <a href="{% url 'core:user_management' %}">User Management</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span style="color: white; font-weight: 600;">Bulk Import</span>
+        </div>
+
+        <div class="page-title">
+            <h1><i class="fas fa-file-upload me-2"></i>Bulk Import Users</h1>
+            <p class="text-white-50">Upload a CSV file to create multiple users at once</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="glass-card">
+
+            <div class="csv-guide">
+                <h6><i class="fas fa-info-circle"></i> CSV Format Guide</h6>
+                <p class="small mb-2">Your CSV file should have these columns in the first row:</p>
+                <ul>
+                    <li><code>username</code> — required</li>
+                    <li><code>first_name</code> — required</li>
+                    <li><code>last_name</code> — required</li>
+                    <li><code>email</code> — required</li>
+                    <li><code>phone_number</code> — optional</li>
+                    <li><code>role</code> — one of: <code>patient</code>, <code>doctor</code>, <code>nurse</code>, <code>receptionist</code>, <code>admin</code></li>
+                    <li><code>sa_id_number</code> — required if role is patient</li>
+                    <li><code>staff_id</code> — required if role is staff</li>
+                    <li><code>password</code> — optional (default: <code>ChangeMe123!</code>)</li>
+                </ul>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label-custom">CSV File *</label>
+                    <input type="file" name="csv_file" class="form-control" accept=".csv" required>
+                </div>
+
+                <div class="d-flex gap-3 mt-4 flex-wrap">
+                    <button type="submit" class="btn-gradient">
+                        <i class="fas fa-upload"></i> Upload & Import
+                    </button>
+                    <a href="{% url 'core:user_management' %}" class="btn-outline-gradient">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

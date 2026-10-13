@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}My Follow-ups - MediSync SA{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h2 style="color:white; font-weight:800; text-align:center; margin-bottom:20px;">
+        My Follow-ups
+    </h2>
+
+    <div style="background:#fff; border-radius:20px; padding:30px; box-shadow:0 10px 40px rgba(0,0,0,0.15); color:#0b1e4d;">
+
+        {% if followups %}
+            {% for f in followups %}
+                <div style="border-left:5px solid #2563eb; padding:16px 20px; background:#f8fafc;
+                            border-radius:12px; margin-bottom:14px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                        <div>
+                            <div style="font-weight:800; color:#0b1e4d; font-size:1.05rem;">
+                                Follow-up due: {{ f.due_date }}
+                            </div>
+                            <div style="color:#64748b; font-size:0.9rem; margin-top:4px;">
+                                {{ f.reason|truncatechars:120 }}
+                            </div>
+                            <div style="color:#64748b; font-size:0.85rem; margin-top:4px;">
+                                By {{ f.doctor.get_doctor_display }}
+                            </div>
+                        </div>
+                        <span style="padding:6px 14px; border-radius:14px; font-weight:700; font-size:0.75rem;
+                            {% if f.status == 'due' %}background:#fef3c7; color:#78350f;
+                            {% elif f.status == 'completed' %}background:#dcfce7; color:#14532d;
+                            {% elif f.status == 'cancelled' %}background:#fee2e2; color:#991b1b;
+                            {% else %}background:#dbeafe; color:#1e3a8a;{% endif %}">
+                            {{ f.get_status_display|upper }}
+                        </span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="text-align:center; color:#64748b; padding:40px 0;">
+                No follow-ups recommended at the moment.
+            </p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

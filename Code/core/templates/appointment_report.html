@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Appointment Report - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ============================================================
+       PAGE CONTAINER — transparent so body image shows through
+       ============================================================ */
+    .page-bg {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    /* ============================================================
+       BREADCRUMB
+       ============================================================ */
+    .breadcrumb-nav {
+        display: flex; align-items: center; gap: 10px;
+        color: rgba(255,255,255,0.75);
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+    .breadcrumb-nav a {
+        color: rgba(255,255,255,0.75);
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    .breadcrumb-nav a:hover { color: #ffffff; }
+
+    /* ============================================================
+       PAGE TITLE — blue gradient (matches app theme)
+       ============================================================ */
+    .page-title { text-align: center; color: white; margin-bottom: 30px; }
+    .page-title h1 {
+        font-weight: 800; font-size: 1.8rem;
+        background: linear-gradient(135deg, #93c5fd, #60a5fa, #bfdbfe);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 4px 15px rgba(59,130,246,0.5));
+    }
+    .page-title p { color: rgba(255,255,255,0.75); font-size: 0.95rem; }
+
+    /* ============================================================
+       GLASS CARD
+       ============================================================ */
+    .glass-card {
+        background: rgba(255,255,255,0.98);
+        border-radius: 22px;
+        padding: 35px 40px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.35);
+    }
+
+    /* ============================================================
+       BUTTONS — blue theme
+       ============================================================ */
+    .btn-outline {
+        background: transparent;
+        border: 2px solid #2563eb;
+        color: #2563eb;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 700;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-outline:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white;
+        border-color: transparent;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+    }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: #888;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: #c7d2fe;
+        margin-bottom: 15px;
+        display: block;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-bg">
+    <div class="container page-content">
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:reports_dashboard' %}"><i class="fas fa-home me-1"></i> Reports</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span style="color: white; font-weight: 600;">Appointment Report</span>
+        </div>
+        <div class="page-title">
+            <h1><i class="fas fa-calendar-check me-2"></i>Appointment Report</h1>
+            <p>View all appointments with filters and details</p>
+        </div>
+        <div class="glass-card">
+            <div class="empty-state">
+                <i class="fas fa-chart-bar"></i>
+                <p>Appointment report content goes here.</p>
+                <a href="{% url 'core:reports_dashboard' %}" class="btn-outline mt-3">
+                    <i class="fas fa-arrow-left"></i> Back to Reports
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

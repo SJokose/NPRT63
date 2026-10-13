@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Search Patient - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== PAGE BACKGROUND ===== */
+    .page-bg {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    /* =====================================================
+       PAGE TITLE — WHITE (beats base.html gradient rule)
+       ===================================================== */
+    html body .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    html body .page-title h1 {
+        font-weight: 800 !important;
+        font-size: 2rem !important;
+        color: #ffffff !important;
+        background: none !important;
+        background-image: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    html body .page-title p {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 0.95rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===== GLASS CARD ===== */
+    .glass-card {
+        background: #ffffff;
+        border-radius: 22px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+    .glass-card .card-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .glass-card .card-header h5 {
+        font-weight: 700;
+        color: #0b1e4d;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .glass-card .card-header h5 i {
+        color: #2563eb !important;
+        background: none !important;
+        -webkit-text-fill-color: #2563eb !important;
+        font-size: 1.2rem;
+    }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+    .breadcrumb-nav a {
+        color: rgba(255, 255, 255, 0.75);
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .breadcrumb-nav a:hover { color: #ffffff; }
+    .breadcrumb-nav span { color: #ffffff; font-weight: 600; }
+
+    /* =====================================================
+       SEARCH BOX — WHITE INPUT + BLUE BUTTON
+       ===================================================== */
+    .search-wrapper {
+        position: relative;
+        max-width: 700px;
+        margin: 0 auto;
+    }
+    .search-wrapper input {
+        padding: 18px 130px 18px 60px !important;
+        border-radius: 16px !important;
+        border: 2px solid rgba(255, 255, 255, 0.4) !important;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        width: 100%;
+        font-size: 1rem !important;
+        color: #0b1e4d !important;
+        transition: all 0.3s;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    .search-wrapper input::placeholder {
+        color: #94a3b8 !important;
+    }
+    .search-wrapper input:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.25),
+                    0 10px 30px rgba(0, 0, 0, 0.2) !important;
+        outline: none !important;
+        background: #ffffff !important;
+        color: #0b1e4d !important;
+    }
+    .search-wrapper > form > i,
+    .search-wrapper i.fa-search {
+        position: absolute;
+        left: 22px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b !important;
+        font-size: 1.2rem;
+        z-index: 3;
+        pointer-events: none;
+    }
+    .search-wrapper button {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+        border: none !important;
+        color: #ffffff !important;
+        border-radius: 12px !important;
+        padding: 10px 24px !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        cursor: pointer;
+        transition: all 0.3s;
+        z-index: 3;
+    }
+    .search-wrapper button:hover {
+        transform: translateY(-50%) scale(1.05);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.5);
+        color: #ffffff !important;
+    }
+
+    /* ===== PATIENT ROWS ===== */
+    .patient-row {
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+    }
+    .patient-row:last-child { border-bottom: none; }
+    .patient-row:hover {
+        background: linear-gradient(90deg, rgba(37, 99, 235, 0.05), transparent);
+        padding-left: 30px;
+    }
+    .patient-avatar {
+        width: 55px; height: 55px;
+        border-radius: 15px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.3rem; font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-gradient {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        border-radius: 12px;
+        padding: 8px 18px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+        color: #ffffff !important;
+    }
+    .btn-gradient i {
+        color: #ffffff !important;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748b;
+    }
+    .empty-state i {
+        font-size: 4rem;
+        color: #cbd5e1;
+        margin-bottom: 15px;
+    }
+    .empty-state h5 {
+        color: #0b1e4d !important;
+        font-weight: 700;
+    }
+
+    /* Register-CTA box on no-results screen */
+    .register-cta {
+        background: #eff6ff;
+        border: 2px dashed #2563eb;
+        border-radius: 18px;
+        padding: 30px 25px;
+        margin: 24px;
+        text-align: center;
+    }
+    .register-cta h5 {
+        color: #0b1e4d;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+    .register-cta p {
+        color: #64748b;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg">
+    <div class="container page-content">
+
+        <!-- ===== BREADCRUMB ===== -->
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:staff_dashboard' %}">
+                <i class="fas fa-home me-1"></i> Dashboard
+            </a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span>Patient Search</span>
+        </div>
+
+        <!-- ===== PAGE TITLE ===== -->
+        <div class="page-title">
+            <h1><i class="fas fa-search me-2"></i>Search Patients</h1>
+            <p>Find patients by SA ID, name, email, or phone</p>
+        </div>
+
+        <!-- ===== SEARCH BOX ===== -->
+        <div class="search-wrapper mb-4">
+            <form method="GET" action="{% url 'core:search_patient' %}" style="position: relative;">
+                <i class="fas fa-search"></i>
+                <input type="text" name="query" placeholder="Search by SA ID, name, email, or phone..."
+                       value="{{ search_query|default:'' }}" autofocus>
+                <button type="submit">Search</button>
+            </form>
+        </div>
+
+        <!-- ===== RESULTS ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5>
+                    <i class="fas fa-users"></i>
+                    {% if search_query %}
+                        Search Results ({{ result_count }})
+                    {% else %}
+                        Patient Directory
+                    {% endif %}
+                </h5>
+                {% if search_query %}
+                    <a href="{% url 'core:search_patient' %}" class="btn-gradient">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                {% if patients %}
+                    {% for patient in patients %}
+                        <div class="patient-row">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="patient-avatar me-3">
+                                        {{ patient.first_name|first|upper }}{{ patient.last_name|first|upper }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">{{ patient.get_full_name }}</h6>
+                                        <p class="text-muted small mb-1">
+                                            <i class="fas fa-id-card me-1"></i>{{ patient.sa_id_number }}
+                                            {% if patient.email %}
+                                                <span class="mx-2">•</span>
+                                                <i class="fas fa-envelope me-1"></i>{{ patient.email }}
+                                            {% endif %}
+                                        </p>
+                                        {% if patient.phone_number %}
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-phone me-1"></i>{{ patient.phone_number }}
+                                                {% if patient.date_of_birth %}
+                                                    <span class="mx-2">•</span>
+                                                    <i class="fas fa-birthday-cake me-1"></i>{{ patient.date_of_birth|date:"d M Y" }}
+                                                {% endif %}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    {# Doctors, nurses and admins can open the clinical record #}
+                                    {% if user.role == 'doctor' or user.role == 'nurse' or user.role == 'admin' %}
+                                        <a href="{% url 'core:view_patient_records' patient.id %}" class="btn-gradient">
+                                            <i class="fas fa-file-medical"></i> View Records
+                                        </a>
+                                    {% endif %}
+
+                                    {# Receptionists and admins can manage appointments #}
+                                    {% if user.role == 'receptionist' or user.role == 'admin' %}
+                                        <a href="{% url 'core:manage_appointments' %}" class="btn-gradient">
+                                            <i class="fas fa-calendar-alt"></i> Manage Appointments
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% elif searched %}
+                    <div class="empty-state">
+                        <i class="fas fa-search-minus"></i>
+                        <h5>No patients found</h5>
+                        <p>No patient matched "<strong>{{ search_query }}</strong>"</p>
+                    </div>
+
+                    {% if user.role == 'receptionist' or user.role == 'admin' %}
+                        <div class="register-cta">
+                            <i class="fas fa-user-plus" style="font-size: 2.5rem; color: #2563eb; margin-bottom: 12px; display: block;"></i>
+                            <h5>Register this patient</h5>
+                            <p>
+                                The patient is not in the system yet. Register them now to create
+                                a patient record and start booking appointments.
+                            </p>
+                            <a href="{% url 'core:receptionist_register_patient' %}?sa_id={{ search_query }}"
+                               class="btn-gradient" style="padding: 12px 26px; font-size: 0.95rem;">
+                                <i class="fas fa-user-plus"></i> Register New Patient
+                            </a>
+                            <p class="mt-3 mb-0" style="font-size: 0.75rem;">
+                                SA ID <strong>{{ search_query }}</strong> will be pre-filled on the form.
+                            </p>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-users"></i>
+                        <h5>Search for a patient</h5>
+                        <p>Enter an SA ID, name, email, or phone number above</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

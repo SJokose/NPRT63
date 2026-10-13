@@ -1,0 +1,600 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}User Management - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== PAGE BACKGROUND ===== */
+    .page-bg {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-nav {
+        display: flex; align-items: center; gap: 10px;
+        color: rgba(255,255,255,0.75); font-size: 0.85rem; margin-bottom: 20px;
+    }
+    .breadcrumb-nav a { color: rgba(255,255,255,0.75); text-decoration: none; transition: color 0.3s; }
+    .breadcrumb-nav a:hover { color: #ffffff; }
+    .breadcrumb-nav span { color: #ffffff; font-weight: 600; }
+
+    /* =====================================================
+       PAGE HEADER — WHITE TITLE
+       ===================================================== */
+    .page-header {
+        display: flex; justify-content: space-between; align-items: center;
+        flex-wrap: wrap; gap: 15px;
+        margin-bottom: 25px;
+    }
+    html body .page-title h1 {
+        font-weight: 800 !important;
+        font-size: 1.8rem !important;
+        color: #ffffff !important;
+        background: none !important;
+        background-image: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+        margin: 0;
+    }
+    html body .page-title p {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 0.85rem;
+        margin: 4px 0 0 0;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* =====================================================
+       HEADER BUTTONS — BLUE
+       ===================================================== */
+    .btn-gradient {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+        color: #ffffff !important;
+    }
+    .btn-gradient i { color: #ffffff !important; }
+
+    .btn-outline {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        color: #ffffff !important;
+        border-radius: 12px;
+        padding: 9px 18px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        backdrop-filter: blur(10px);
+    }
+    .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.7);
+        color: #ffffff !important;
+        transform: translateY(-2px);
+    }
+
+    /* =====================================================
+       STAT TILES — ICONS REMOVED, numbers prominent
+       ===================================================== */
+    .stat-tile {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 24px 15px;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s;
+        height: 100%;
+        border: 2px solid transparent;
+    }
+    .stat-tile:hover {
+        transform: translateY(-5px);
+        border-color: #2563eb;
+        box-shadow: 0 15px 35px rgba(37, 99, 235, 0.3);
+    }
+    /* Removed .stat-tile .st-icon entirely (no more icons in tiles) */
+    .stat-tile .st-value {
+        font-size: 2.4rem;
+        font-weight: 800;
+        color: #0b1e4d;
+        line-height: 1;
+    }
+    .stat-tile .st-label {
+        color: #64748b;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 8px;
+    }
+    /* Colored bottom accent strip per tile */
+    .stat-tile.tile-total    { border-bottom: 4px solid #2563eb; }
+    .stat-tile.tile-patients { border-bottom: 4px solid #10b981; }
+    .stat-tile.tile-doctors  { border-bottom: 4px solid #3b82f6; }
+    .stat-tile.tile-staff    { border-bottom: 4px solid #f59e0b; }
+    .stat-tile.tile-active   { border-bottom: 4px solid #10b981; }
+    .stat-tile.tile-inactive { border-bottom: 4px solid #ef4444; }
+
+    /* =====================================================
+       GLASS CARDS (solid white)
+       ===================================================== */
+    .glass-card {
+        background: #ffffff;
+        border-radius: 22px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+    .glass-card .card-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .glass-card .card-header h5 {
+        font-weight: 700; color: #0b1e4d; margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .glass-card .card-header h5 i {
+        color: #2563eb !important;
+        background: none !important;
+        -webkit-text-fill-color: #2563eb !important;
+        font-size: 1.1rem;
+    }
+
+    /* ===== FILTER FORM ===== */
+    .filter-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: #0b1e4d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .form-control, .form-select {
+        border-radius: 12px !important;
+        border: 2px solid #e2e8f0 !important;
+        padding: 10px 14px !important;
+        font-size: 0.9rem;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #0b1e4d !important;
+        transition: all 0.3s;
+    }
+    .form-control::placeholder { color: #94a3b8 !important; }
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13) !important;
+        background: #ffffff !important;
+        color: #0b1e4d !important;
+    }
+
+    /* ===== TABLE ===== */
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .user-table thead th {
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 14px 18px;
+        text-align: left;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    .user-table tbody td {
+        padding: 16px 18px;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.88rem;
+        color: #0b1e4d;
+        vertical-align: middle;
+    }
+    .user-table tbody tr:hover td {
+        background: linear-gradient(90deg, rgba(37, 99, 235, 0.05), transparent);
+    }
+    .user-table tbody tr:last-child td { border-bottom: none; }
+
+    .user-name-cell { display: flex; align-items: center; gap: 12px; }
+
+    /* =====================================================
+       AVATARS — role-aware, all BLUE-family
+       ===================================================== */
+    .user-avatar {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        color: white;
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .user-avatar.role-doctor       { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    .user-avatar.role-nurse        { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+    .user-avatar.role-receptionist { background: linear-gradient(135deg, #475569, #64748b); }
+    .user-avatar.role-admin        { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+    .user-avatar.role-patient      { background: linear-gradient(135deg, #059669, #10b981); }
+
+    .user-name-cell .name {
+        font-weight: 700;
+        color: #0b1e4d;
+        font-size: 0.9rem;
+    }
+    .user-name-cell .username {
+        font-size: 0.75rem;
+        color: #64748b;
+    }
+
+    /* =====================================================
+       ROLE BADGES — all blue-family + distinct
+       ===================================================== */
+    .role-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        display: inline-block;
+        color: white;
+    }
+    .role-badge.role-patient      { background: linear-gradient(135deg, #059669, #10b981); }
+    .role-badge.role-doctor       { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    .role-badge.role-nurse        { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+    .role-badge.role-receptionist { background: linear-gradient(135deg, #475569, #64748b); }
+    .role-badge.role-admin        { background: linear-gradient(135deg, #7c3aed, #a855f7); }
+
+    /* ===== STATUS BADGES ===== */
+    .status-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .status-badge.active {
+        background: linear-gradient(135deg, #059669, #10b981);
+        color: white;
+    }
+    .status-badge.inactive {
+        background: linear-gradient(135deg, #dc2626, #ef4444);
+        color: white;
+    }
+
+    /* =====================================================
+       ACTION BUTTONS — subtle, colored
+       ===================================================== */
+    .action-btn {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        border: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.85rem;
+        text-decoration: none;
+        transition: all 0.25s;
+        cursor: pointer;
+        margin-right: 4px;
+    }
+    .action-btn:hover {
+        transform: translateY(-2px);
+        color: white;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+    .action-btn.edit   { background: linear-gradient(135deg, #f59e0b, #fbbf24); }
+    .action-btn.toggle { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+    .action-btn.delete { background: linear-gradient(135deg, #dc2626, #ef4444); }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748b;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 15px;
+        display: block;
+    }
+    .empty-state p { margin: 0; font-size: 0.9rem; }
+
+    /* ===== PAGINATION ===== */
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        padding: 20px;
+        margin: 0;
+        list-style: none;
+    }
+    .pagination a,
+    .pagination span {
+        padding: 8px 14px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #2563eb;
+        background: #eef2ff;
+        transition: all 0.3s;
+    }
+    .pagination a:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white;
+    }
+    .pagination .active span,
+    .pagination .current {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white;
+    }
+    .pagination .disabled span {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg position-relative">
+    <div class="container page-content">
+
+        <!-- BREADCRUMB -->
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:staff_dashboard' %}"><i class="fas fa-home me-1"></i> Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span>User Management</span>
+        </div>
+
+        <!-- PAGE HEADER -->
+        <div class="page-header">
+            <div class="page-title">
+                <h1><i class="fas fa-users-cog me-2"></i>User Management</h1>
+                <p>Manage patients, doctors, nurses, and staff accounts</p>
+            </div>
+            <div class="header-actions">
+                <a href="{% url 'core:bulk_import_users' %}" class="btn-outline">
+                    <i class="fas fa-upload"></i> Bulk Import
+                </a>
+                <a href="{% url 'core:add_user' %}" class="btn-gradient">
+                    <i class="fas fa-user-plus"></i> Add User
+                </a>
+            </div>
+        </div>
+
+        <!-- ===== STAT TILES — no icons, just numbers ===== -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="stat-tile tile-total">
+                    <div class="st-value">{{ stats.total }}</div>
+                    <div class="st-label">Total Users</div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="stat-tile tile-patients">
+                    <div class="st-value">{{ stats.patients }}</div>
+                    <div class="st-label">Patients</div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="stat-tile tile-doctors">
+                    <div class="st-value">{{ stats.doctors }}</div>
+                    <div class="st-label">Doctors</div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="stat-tile tile-staff">
+                    <div class="st-value">{{ stats.staff }}</div>
+                    <div class="st-label">Staff</div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="stat-tile tile-active">
+                    <div class="st-value">{{ stats.active }}</div>
+                    <div class="st-label">Active</div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-6">
+                <div class="stat-tile tile-inactive">
+                    <div class="st-value">{{ stats.inactive }}</div>
+                    <div class="st-label">Inactive</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FILTERS -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-filter"></i> Filters &amp; Search</h5>
+            </div>
+            <div class="p-4">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="filter-label">Role</label>
+                        <select name="role" class="form-select">
+                            <option value="">All Roles</option>
+                            <option value="patient" {% if role_filter == 'patient' %}selected{% endif %}>Patient</option>
+                            <option value="doctor" {% if role_filter == 'doctor' %}selected{% endif %}>Doctor</option>
+                            <option value="nurse" {% if role_filter == 'nurse' %}selected{% endif %}>Nurse</option>
+                            <option value="receptionist" {% if role_filter == 'receptionist' %}selected{% endif %}>Receptionist</option>
+                            <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="filter-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="">All</option>
+                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="filter-label">Search</label>
+                        <input type="text" name="search" class="form-control"
+                               placeholder="Name, Email, SA ID..." value="{{ search_query }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="filter-label">&nbsp;</label>
+                        <button type="submit" class="btn-gradient w-100 justify-content-center">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- USERS TABLE -->
+        <div class="glass-card" style="padding: 0; overflow: hidden;">
+            {% if users %}
+                <div style="overflow-x: auto;">
+                    <table class="user-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>SA / Staff ID</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Joined</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                                <tr>
+                                    <td>
+                                        <div class="user-name-cell">
+                                            <div class="user-avatar role-{{ u.role }}">
+                                                {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                                            </div>
+                                            <div>
+                                                <div class="name">{{ u.get_full_name }}</div>
+                                                <div class="username">{{ u.username }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if u.role == 'patient' %}
+                                            {{ u.sa_id_number|default:"—" }}
+                                        {% else %}
+                                            {{ u.staff_id|default:"—" }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ u.email|default:"—" }}</td>
+                                    <td>
+                                        <span class="role-badge role-{{ u.role }}">
+                                            {{ u.get_role_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if u.is_active %}
+                                            <span class="status-badge active">
+                                                <i class="fas fa-check-circle"></i> Active
+                                            </span>
+                                        {% else %}
+                                            <span class="status-badge inactive">
+                                                <i class="fas fa-times-circle"></i> Inactive
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td style="font-size: 0.8rem; color: #64748b;">
+                                        {{ u.date_joined|date:"d M Y" }}
+                                    </td>
+                                    <td style="text-align: right; white-space: nowrap;">
+                                        <a href="{% url 'core:edit_user' u.id %}" class="action-btn edit" title="Edit">
+                                            <i class="fas fa-pen"></i>
+                                        </a>
+                                        <a href="{% url 'core:toggle_user_status' u.id %}" class="action-btn toggle" title="Toggle Status">
+                                            {% if u.is_active %}
+                                                <i class="fas fa-ban"></i>
+                                            {% else %}
+                                                <i class="fas fa-check"></i>
+                                            {% endif %}
+                                        </a>
+                                        <a href="{% url 'core:delete_user' u.id %}" class="action-btn delete" title="Delete"
+                                           onclick="return confirm('Delete {{ u.get_full_name }}? This cannot be undone.');">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-users-slash"></i>
+                    <p>No users found</p>
+                </div>
+            {% endif %}
+
+            {% if users.has_other_pages %}
+                <div class="pagination">
+                    {% if users.has_previous %}
+                        <a href="?page={{ users.previous_page_number }}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% else %}
+                        <span class="disabled"><i class="fas fa-chevron-left"></i></span>
+                    {% endif %}
+
+                    {% for num in users.paginator.page_range %}
+                        {% if users.number == num %}
+                            <span class="current">{{ num }}</span>
+                        {% else %}
+                            <a href="?page={{ num }}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if users.has_next %}
+                        <a href="?page={{ users.next_page_number }}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% else %}
+                        <span class="disabled"><i class="fas fa-chevron-right"></i></span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

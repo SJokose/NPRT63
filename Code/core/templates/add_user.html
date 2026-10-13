@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add User - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
+
+    .page-bg {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+    }
+    .page-content { position: relative; z-index: 2; }
+
+    .breadcrumb-nav {
+        display: flex; align-items: center; gap: 10px;
+        color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 20px;
+    }
+    .breadcrumb-nav a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    .breadcrumb-nav a:hover { color: white; }
+
+    .page-title { text-align: center; color: white; margin-bottom: 30px; }
+    .page-title h1 {
+        font-weight: 800; font-size: 1.8rem;
+        background: linear-gradient(135deg, #a78bfa, #f0abfc);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .glass-card {
+        background: rgba(255,255,255,0.98);
+        border-radius: 22px;
+        padding: 35px 40px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+    }
+
+    .form-label-custom {
+        font-size: 0.8rem; font-weight: 700; color: #1a1a2e;
+        text-transform: uppercase; letter-spacing: 1px;
+        margin-bottom: 8px; display: block;
+    }
+    .form-control, .form-select {
+        border-radius: 12px; border: 2px solid #e8eaf2;
+        padding: 12px 16px; font-size: 0.95rem;
+        background: #f8f9fc; transition: all 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102,126,234,0.12);
+        background: white;
+    }
+
+    .role-picker {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 12px;
+        margin-bottom: 25px;
+    }
+    .role-choice {
+        display: block;
+        padding: 16px;
+        border: 2px solid #e8eaf2;
+        border-radius: 14px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background: #f8f9fc;
+        text-decoration: none;
+        color: #1a1a2e;
+    }
+    .role-choice:hover {
+        border-color: #667eea;
+        background: white;
+    }
+    .role-choice.selected {
+        border-color: #667eea;
+        background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+    }
+    .role-choice .rc-icon {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        margin: 0 auto 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1rem;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        box-shadow: 0 6px 15px rgba(102,126,234,0.3);
+    }
+    .role-choice .rc-label {
+        font-weight: 700;
+        font-size: 0.85rem;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none; color: white; border-radius: 12px;
+        padding: 14px 28px; font-weight: 700; font-size: 1rem;
+        transition: all 0.3s; cursor: pointer;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102,126,234,0.45);
+        color: white;
+    }
+    .btn-outline-gradient {
+        background: transparent; border: 2px solid #667eea;
+        color: #667eea; border-radius: 12px;
+        padding: 12px 24px; font-weight: 700;
+        transition: all 0.3s; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; border-color: transparent;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg">
+    <div class="container page-content">
+
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:staff_dashboard' %}"><i class="fas fa-home me-1"></i> Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <a href="{% url 'core:user_management' %}">User Management</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span style="color: white; font-weight: 600;">Add User</span>
+        </div>
+
+        <div class="page-title">
+            <h1><i class="fas fa-user-plus me-2"></i>Add New User</h1>
+            <p class="text-white-50">Create a new patient or staff account</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="glass-card">
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label-custom">Select Role *</label>
+                    <div class="role-picker">
+                        <label class="role-choice" onclick="selectRole(this, 'patient')">
+                            <div class="rc-icon"><i class="fas fa-user-injured"></i></div>
+                            <div class="rc-label">Patient</div>
+                            <input type="radio" name="role" value="patient" style="display:none;" required>
+                        </label>
+                        <label class="role-choice" onclick="selectRole(this, 'doctor')">
+                            <div class="rc-icon"><i class="fas fa-user-md"></i></div>
+                            <div class="rc-label">Doctor</div>
+                            <input type="radio" name="role" value="doctor" style="display:none;">
+                        </label>
+                        <label class="role-choice" onclick="selectRole(this, 'nurse')">
+                            <div class="rc-icon"><i class="fas fa-user-nurse"></i></div>
+                            <div class="rc-label">Nurse</div>
+                            <input type="radio" name="role" value="nurse" style="display:none;">
+                        </label>
+                        <label class="role-choice" onclick="selectRole(this, 'receptionist')">
+                            <div class="rc-icon"><i class="fas fa-user-tie"></i></div>
+                            <div class="rc-label">Receptionist</div>
+                            <input type="radio" name="role" value="receptionist" style="display:none;">
+                        </label>
+                        <label class="role-choice" onclick="selectRole(this, 'admin')">
+                            <div class="rc-icon"><i class="fas fa-user-shield"></i></div>
+                            <div class="rc-label">Admin</div>
+                            <input type="radio" name="role" value="admin" style="display:none;">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label-custom">SA ID Number *</label>
+                        {{ form.sa_id_number }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Date of Birth *</label>
+                        {{ form.date_of_birth }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">First Name *</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Surname *</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Email *</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Phone Number *</label>
+                        {{ form.phone_number }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Password *</label>
+                        {{ form.password1 }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label-custom">Confirm Password *</label>
+                        {{ form.password2 }}
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-4 flex-wrap">
+                    <button type="submit" class="btn-gradient">
+                        <i class="fas fa-save"></i> Create User
+                    </button>
+                    <a href="{% url 'core:user_management' %}" class="btn-outline-gradient">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectRole(el, role) {
+        document.querySelectorAll('.role-choice').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        el.querySelector('input[type="radio"]').checked = true;
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Follow-ups - {{ patient.get_full_name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="background:#fff; border-radius:20px; padding:30px; box-shadow:0 10px 40px rgba(0,0,0,0.15); color:#0b1e4d;">
+        <h2 style="font-weight:800;">Follow-ups for {{ patient.get_full_name }}</h2>
+        <p style="color:#64748b;">SA ID: {{ patient.sa_id_number }}</p>
+
+        {% if followups %}
+            <table style="width:100%; border-collapse:collapse; margin-top:20px;">
+                <thead>
+                    <tr style="background:#f1f5f9;">
+                        <th style="text-align:left; padding:12px; color:#0b1e4d;">Due Date</th>
+                        <th style="text-align:left; padding:12px; color:#0b1e4d;">Reason</th>
+                        <th style="text-align:left; padding:12px; color:#0b1e4d;">Status</th>
+                        <th style="text-align:right; padding:12px; color:#0b1e4d;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in followups %}
+                        <tr style="border-bottom:1px solid #e2e8f0;">
+                            <td style="padding:12px;">{{ f.due_date }}</td>
+                            <td style="padding:12px;">{{ f.reason|truncatechars:80 }}</td>
+                            <td style="padding:12px;">
+                                <span style="padding:4px 10px; border-radius:12px; font-size:0.8rem; font-weight:700;
+                                    {% if f.status == 'due' %}background:#fef3c7; color:#78350f;
+                                    {% elif f.status == 'completed' %}background:#dcfce7; color:#14532d;
+                                    {% elif f.status == 'cancelled' %}background:#fee2e2; color:#991b1b;
+                                    {% else %}background:#dbeafe; color:#1e3a8a;{% endif %}">
+                                    {{ f.get_status_display }}
+                                </span>
+                            </td>
+                            <td style="padding:12px; text-align:right;">
+                                {% if f.status == 'due' %}
+                                    <a href="{% url 'core:complete_followup' f.id %}"
+                                       style="color:#2563eb; font-weight:700;">Manage</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p style="color:#64748b; margin-top:20px;">No follow-ups for this patient yet.</p>
+        {% endif %}
+
+        <div style="margin-top:20px;">
+            <a href="{% url 'core:create_followup' patient.id %}"
+               style="display:inline-block; padding:12px 20px; background:linear-gradient(135deg,#1e3a8a,#2563eb);
+                      color:white; text-decoration:none; border-radius:10px; font-weight:700;">
+                <i class="fas fa-plus"></i> New Follow-up
+            </a>
+            <a href="{% url 'core:view_patient_records' patient.id %}"
+               style="margin-left:10px; padding:12px 20px; background:#f1f5f9; color:#475569;
+                      text-decoration:none; border-radius:10px; font-weight:700;">
+                Back to Records
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

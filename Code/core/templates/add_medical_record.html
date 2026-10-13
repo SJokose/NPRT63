@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Add Medical Record - {{ patient.get_full_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
+
+    .page-bg {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+    }
+    .page-bg .sparkle {
+        position: absolute; width: 6px; height: 6px;
+        background: white; border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255,255,255,0.7), 0 0 20px rgba(167,139,250,0.5);
+        animation: floatGlitter linear infinite; opacity: 0;
+    }
+    .page-bg .sparkle:nth-child(1) { left: 5%; top: 10%; animation-duration: 6s; }
+    .page-bg .sparkle:nth-child(2) { left: 25%; top: 40%; animation-duration: 8s; animation-delay: 1s; }
+    .page-bg .sparkle:nth-child(3) { left: 60%; top: 70%; animation-duration: 7s; animation-delay: 2s; }
+    .page-bg .sparkle:nth-child(4) { left: 85%; top: 20%; animation-duration: 9s; animation-delay: 0.5s; }
+
+    @keyframes floatGlitter {
+        0%   { transform: translateY(0) scale(0.5); opacity: 0; }
+        30%  { opacity: 1; transform: translateY(-40px) scale(1.2); }
+        70%  { opacity: 0.8; transform: translateY(-80px) scale(0.8); }
+        100% { transform: translateY(-120px) scale(0.3); opacity: 0; }
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    .breadcrumb-nav {
+        display: flex; align-items: center; gap: 10px;
+        color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 20px;
+    }
+    .breadcrumb-nav a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    .breadcrumb-nav a:hover { color: white; }
+
+    .page-title {
+        text-align: center; color: white; margin-bottom: 30px;
+    }
+    .page-title h1 {
+        font-weight: 800; font-size: 1.8rem;
+        background: linear-gradient(135deg, #a78bfa, #f0abfc);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .page-title .doctor-badge {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.25);
+        color: white;
+        padding: 6px 16px; border-radius: 30px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-top: 12px;
+    }
+    .page-title .doctor-badge i { color: #a78bfa; }
+
+    .glass-card {
+        background: rgba(255,255,255,0.98);
+        border-radius: 22px;
+        padding: 35px 40px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+    }
+
+    .form-label-custom {
+        font-size: 0.8rem; font-weight: 700; color: #1a1a2e;
+        text-transform: uppercase; letter-spacing: 1px;
+        margin-bottom: 8px; display: block;
+    }
+    .form-control, .form-select {
+        border-radius: 12px; border: 2px solid #e8eaf2;
+        padding: 12px 16px; font-size: 0.95rem;
+        background: #f8f9fc; transition: all 0.3s;
+    }
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 4px rgba(102,126,234,0.12);
+        background: white;
+    }
+
+    .btn-gradient {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none; color: white; border-radius: 12px;
+        padding: 14px 28px; font-weight: 700; font-size: 1rem;
+        transition: all 0.3s; cursor: pointer;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102,126,234,0.45);
+        color: white;
+    }
+    .btn-outline-gradient {
+        background: transparent; border: 2px solid #667eea;
+        color: #667eea; border-radius: 12px;
+        padding: 12px 24px; font-weight: 700;
+        transition: all 0.3s; text-decoration: none;
+        display: inline-block;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; border-color: transparent;
+    }
+
+    .patient-badge {
+        background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+        border-radius: 14px;
+        padding: 16px 20px;
+        margin-bottom: 25px;
+        display: flex; align-items: center; gap: 15px;
+    }
+    .patient-badge .pb-avatar {
+        width: 50px; height: 50px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.2rem; font-weight: 700;
+        box-shadow: 0 6px 15px rgba(102,126,234,0.3);
+    }
+    .patient-badge h6 { margin: 0; font-weight: 800; color: #1a1a2e; }
+    .patient-badge p { margin: 0; font-size: 0.8rem; color: #888; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg position-relative">
+    <span class="sparkle"></span><span class="sparkle"></span><span class="sparkle"></span>
+    <span class="sparkle"></span>
+
+    <div class="container page-content">
+
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:staff_dashboard' %}"><i class="fas fa-home me-1"></i> Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <a href="{% url 'core:view_patient_records' patient.id %}">{{ patient.get_full_name }}</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span style="color: white; font-weight: 600;">Add Medical Record</span>
+        </div>
+
+        <div class="page-title">
+            <h1><i class="fas fa-notes-medical me-2"></i>Add Medical Record</h1>
+            <p class="text-white-50">Record diagnosis, treatment plan, and vitals</p>
+            <span class="doctor-badge">
+                <i class="fas fa-user-md"></i>
+                Doctor Action
+            </span>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="glass-card">
+
+            <!-- Patient Badge -->
+            <div class="patient-badge">
+                <div class="pb-avatar">
+                    {{ patient.first_name|first|upper }}{{ patient.last_name|first|upper }}
+                </div>
+                <div>
+                    <h6>{{ patient.get_full_name }}</h6>
+                    <p><i class="fas fa-id-card me-1"></i>{{ patient.sa_id_number }}</p>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label class="form-label-custom">Diagnosis *</label>
+                    <textarea name="diagnosis" class="form-control" rows="3"
+                              placeholder="Enter the patient's diagnosis..." required>{{ form.diagnosis.value|default:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label-custom">Treatment Plan</label>
+                    <textarea name="treatment_plan" class="form-control" rows="3"
+                              placeholder="Recommended treatment...">{{ form.treatment_plan.value|default:'' }}</textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label-custom">Additional Notes</label>
+                    <textarea name="notes" class="form-control" rows="2"
+                              placeholder="Any additional observations...">{{ form.notes.value|default:'' }}</textarea>
+                </div>
+
+                <h6 class="mt-4 mb-3" style="color: #667eea; font-weight: 800;">
+                    <i class="fas fa-heartbeat me-2"></i>Vitals (Optional)
+                </h6>
+
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label-custom">Blood Pressure</label>
+                        <input type="text" name="blood_pressure" class="form-control"
+                               placeholder="e.g., 120/80" value="{{ form.blood_pressure.value|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label-custom">Heart Rate (bpm)</label>
+                        <input type="number" name="heart_rate" class="form-control"
+                               placeholder="72" value="{{ form.heart_rate.value|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label-custom">Temperature (°C)</label>
+                        <input type="number" step="0.1" name="temperature" class="form-control"
+                               placeholder="36.5" value="{{ form.temperature.value|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label-custom">Weight (kg)</label>
+                        <input type="number" step="0.01" name="weight" class="form-control"
+                               placeholder="70.5" value="{{ form.weight.value|default:'' }}">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label-custom">Height (cm)</label>
+                        <input type="number" step="0.01" name="height" class="form-control"
+                               placeholder="175" value="{{ form.height.value|default:'' }}">
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn-gradient">
+                        <i class="fas fa-save me-2"></i>Save Medical Record
+                    </button>
+                    <a href="{% url 'core:view_patient_records' patient.id %}" class="btn-outline-gradient">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

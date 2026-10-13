@@ -1,0 +1,623 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patient Records - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-bg {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+    .breadcrumb-nav a {
+        color: rgba(255, 255, 255, 0.75);
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .breadcrumb-nav a:hover { color: #ffffff; }
+    .breadcrumb-nav span { color: #ffffff; font-weight: 600; }
+    .breadcrumb-nav i.fa-chevron-right { font-size: 0.65rem; }
+
+    /* ===== PATIENT BANNER ===== */
+    .patient-banner {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        border-radius: 25px;
+        padding: 30px 35px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    .patient-banner::before {
+        content: '';
+        position: absolute;
+        top: -60%; right: -10%;
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+    }
+    .patient-banner .banner-avatar {
+        width: 80px; height: 80px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #ffffff;
+        flex-shrink: 0;
+        position: relative;
+        z-index: 1;
+        backdrop-filter: blur(10px);
+    }
+    .patient-banner .banner-info { position: relative; z-index: 1; flex: 1; }
+    .patient-banner h1 {
+        font-weight: 800;
+        font-size: 1.8rem;
+        margin: 0 0 10px 0;
+        color: #ffffff;
+    }
+    .patient-banner .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.95);
+    }
+    .patient-banner .meta span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .patient-banner .meta i { color: #ffffff; }
+
+    /* ===== ACTION TILES ===== */
+    .action-tile {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 24px 18px;
+        text-align: center;
+        text-decoration: none;
+        color: #0b1e4d;
+        transition: all 0.3s ease;
+        display: block;
+        height: 100%;
+        border: 2px solid transparent;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    .action-tile:hover {
+        border-color: #2563eb;
+        transform: translateY(-6px);
+        box-shadow: 0 20px 45px rgba(37, 99, 235, 0.3);
+        color: #0b1e4d;
+    }
+    .action-tile .tile-icon {
+        width: 60px; height: 60px;
+        border-radius: 18px;
+        margin: 0 auto 14px;
+        display: flex; align-items: center; justify-content: center;
+        color: #ffffff;
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+    .action-tile .tile-title {
+        font-weight: 800;
+        font-size: 0.95rem;
+        color: #0b1e4d;
+        margin-bottom: 4px;
+    }
+    .action-tile .tile-subtitle {
+        font-size: 0.78rem;
+        color: #64748b;
+    }
+
+    /* ===== GLASS CARDS ===== */
+    .glass-card {
+        background: #ffffff;
+        border-radius: 22px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+    .glass-card:hover { box-shadow: 0 15px 45px rgba(37, 99, 235, 0.25); }
+    .glass-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+        padding: 20px 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .glass-card .card-header h5 {
+        font-weight: 700;
+        color: #0b1e4d;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.05rem;
+    }
+    .glass-card .card-header h5 i {
+        color: #2563eb;
+        font-size: 1.2rem;
+    }
+
+    /* ===== RECORD / FOLLOWUP ITEMS ===== */
+    .record-item, .followup-item {
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.08);
+        transition: all 0.3s ease;
+    }
+    .record-item:last-child, .followup-item:last-child { border-bottom: none; }
+    .record-item:hover, .followup-item:hover {
+        background: rgba(37, 99, 235, 0.04);
+    }
+
+    .record-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px dashed rgba(37, 99, 235, 0.15);
+    }
+    .record-meta strong { color: #2563eb; font-weight: 700; }
+    .record-diagnosis {
+        font-weight: 700;
+        color: #0b1e4d;
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+    }
+    .record-notes {
+        color: #64748b;
+        font-size: 0.85rem;
+        line-height: 1.5;
+    }
+
+    /* ===== VITALS ROW ===== */
+    .vitals-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px dashed rgba(37, 99, 235, 0.15);
+    }
+    .vital-chip {
+        background: #eff6ff;
+        color: #1e40af;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.72rem;
+        font-weight: 700;
+    }
+
+    /* ===== FOLLOW-UP ITEM ===== */
+    .followup-item {
+        background: #f8fafc;
+        border-left: 5px solid #2563eb;
+        border-radius: 12px;
+        margin: 12px 20px;
+        padding: 16px 20px;
+    }
+    .followup-item .due-date {
+        font-weight: 800;
+        color: #0b1e4d;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+    .followup-item .reason {
+        color: #64748b;
+        font-size: 0.85rem;
+        margin-bottom: 4px;
+    }
+    .followup-item .doc-name {
+        color: #64748b;
+        font-size: 0.78rem;
+    }
+
+    /* ===== STATUS PILLS ===== */
+    .status-pill {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    .status-pill.due       { background: #fef3c7; color: #78350f; }
+    .status-pill.scheduled { background: #dbeafe; color: #1e3a8a; }
+    .status-pill.completed { background: #dcfce7; color: #14532d; }
+    .status-pill.cancelled { background: #fee2e2; color: #991b1b; }
+
+    /* ===== BUTTONS ===== */
+    .btn-gradient {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+        border: none;
+        color: #ffffff !important;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+        color: #ffffff !important;
+    }
+    .btn-gradient i { color: #ffffff !important; }
+
+    .btn-outline-gradient {
+        background: transparent;
+        border: 2px solid #2563eb;
+        color: #2563eb !important;
+        border-radius: 12px;
+        padding: 8px 18px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: #ffffff !important;
+        border-color: transparent;
+        transform: translateY(-2px);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: #64748b;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 15px;
+    }
+    .empty-state p { margin: 0; font-size: 0.9rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg">
+    <div class="container page-content">
+
+        <!-- ===== BREADCRUMB ===== -->
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:staff_dashboard' %}">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+            <i class="fas fa-chevron-right"></i>
+            <a href="{% url 'core:search_patient' %}">Search</a>
+            <i class="fas fa-chevron-right"></i>
+            <span>{{ patient.get_full_name }}</span>
+        </div>
+
+        <!-- ===== PATIENT BANNER ===== -->
+        <div class="patient-banner">
+            <div class="banner-avatar">
+                {{ patient.first_name|first|upper }}{{ patient.last_name|first|upper }}
+            </div>
+            <div class="banner-info">
+                <h1>{{ patient.get_full_name }}</h1>
+                <div class="meta">
+                    <span><i class="fas fa-id-card"></i> SA ID: <strong>{{ patient.sa_id_number }}</strong></span>
+                    {% if patient.email %}
+                        <span><i class="fas fa-envelope"></i> {{ patient.email }}</span>
+                    {% endif %}
+                    {% if patient.phone_number %}
+                        <span><i class="fas fa-phone"></i> {{ patient.phone_number }}</span>
+                    {% endif %}
+                    {% if patient.date_of_birth %}
+                        <span><i class="fas fa-birthday-cake"></i> {{ patient.date_of_birth|date:"d M Y" }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ACTION TILES ===== -->
+        <div class="row g-4 mb-4">
+            {% if user.role == 'doctor' or user.role == 'nurse' %}
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'core:nurse_record_vitals' patient.id %}" class="action-tile">
+                    <div class="tile-icon"><i class="fas fa-heartbeat"></i></div>
+                    <div class="tile-title">Record Vitals</div>
+                    <div class="tile-subtitle">BP, temp, weight, height</div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'core:add_clinical_note' patient.id %}" class="action-tile">
+                    <div class="tile-icon"><i class="fas fa-comment-medical"></i></div>
+                    <div class="tile-title">Add Clinical Note</div>
+                    <div class="tile-subtitle">Nursing notes &amp; observations</div>
+                </a>
+            </div>
+            {% endif %}
+
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'core:manage_appointments' %}" class="action-tile">
+                    <div class="tile-icon"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="tile-title">Appointments</div>
+                    <div class="tile-subtitle">Today &amp; upcoming</div>
+                </a>
+            </div>
+
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'core:search_patient' %}" class="action-tile">
+                    <div class="tile-icon"><i class="fas fa-search"></i></div>
+                    <div class="tile-title">Search Patient</div>
+                    <div class="tile-subtitle">Find another patient</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- ===== FOLLOW-UPS ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-calendar-check"></i> Follow-ups ({{ followups|length }})</h5>
+                {% if user.role == 'doctor' %}
+                    <a href="{% url 'core:create_followup' patient.id %}" class="btn-gradient">
+                        <i class="fas fa-plus"></i> New Follow-up
+                    </a>
+                {% endif %}
+            </div>
+            {% if followups %}
+                {% for f in followups %}
+                    <div class="followup-item">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div class="flex-grow-1">
+                                <div class="due-date">
+                                    <i class="far fa-calendar-alt" style="color: #2563eb;"></i>
+                                    Due {{ f.due_date|date:"M. d, Y" }}
+                                </div>
+                                <div class="reason">{{ f.reason }}</div>
+                                <div class="doc-name">
+                                    <i class="fas fa-user-md me-1"></i>By {{ f.doctor.get_doctor_display }}
+                                </div>
+                            </div>
+                            <span class="status-pill {{ f.status }}">{{ f.get_status_display|upper }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No follow-ups recorded for this patient.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ===== MEDICAL RECORDS ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-file-medical"></i> Medical Records ({{ records|length }})</h5>
+                {% if user.role == 'doctor' %}
+                    <a href="{% url 'core:add_medical_record' patient.id %}" class="btn-gradient">
+                        <i class="fas fa-plus"></i> Add Record
+                    </a>
+                {% endif %}
+            </div>
+            {% if records %}
+                {% for record in records %}
+                    <div class="record-item">
+                        <div class="record-meta">
+                            <span>
+                                <i class="fas fa-user-md me-1" style="color: #2563eb;"></i>
+                                <strong>
+                                    {% if record.created_by %}
+                                        {{ record.created_by.get_doctor_display }}
+                                    {% else %}
+                                        Unknown
+                                    {% endif %}
+                                </strong>
+                            </span>
+                            <span>
+                                <i class="far fa-clock me-1"></i>
+                                {{ record.created_at|date:"d M Y, H:i" }}
+                            </span>
+                        </div>
+                        <div class="record-diagnosis">{{ record.diagnosis }}</div>
+                        {% if record.treatment_plan %}
+                            <div class="record-notes">
+                                <strong style="color: #0b1e4d;">Treatment plan:</strong>
+                                {{ record.treatment_plan }}
+                            </div>
+                        {% endif %}
+                        {% if record.notes %}
+                            <div class="record-notes mt-2">{{ record.notes }}</div>
+                        {% endif %}
+                        {% if record.blood_pressure or record.heart_rate or record.temperature or record.weight or record.height %}
+                            <div class="vitals-row">
+                                {% if record.blood_pressure %}
+                                    <span class="vital-chip"><i class="fas fa-tint me-1"></i>BP {{ record.blood_pressure }}</span>
+                                {% endif %}
+                                {% if record.heart_rate %}
+                                    <span class="vital-chip"><i class="fas fa-heartbeat me-1"></i>HR {{ record.heart_rate }} bpm</span>
+                                {% endif %}
+                                {% if record.temperature %}
+                                    <span class="vital-chip"><i class="fas fa-thermometer-half me-1"></i>{{ record.temperature }}°C</span>
+                                {% endif %}
+                                {% if record.weight %}
+                                    <span class="vital-chip"><i class="fas fa-weight me-1"></i>{{ record.weight }} kg</span>
+                                {% endif %}
+                                {% if record.height %}
+                                    <span class="vital-chip"><i class="fas fa-ruler-vertical me-1"></i>{{ record.height }} cm</span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-file-medical-alt"></i>
+                    <p>No medical records yet.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ===== CLINICAL NOTES ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-comment-medical"></i> Clinical Notes ({{ clinical_notes|length }})</h5>
+                {% if user.role == 'doctor' or user.role == 'nurse' %}
+                    <a href="{% url 'core:add_clinical_note' patient.id %}" class="btn-gradient">
+                        <i class="fas fa-plus"></i> Add Note
+                    </a>
+                {% endif %}
+            </div>
+            {% if clinical_notes %}
+                {% for note in clinical_notes %}
+                    <div class="record-item">
+                        <div class="record-meta">
+                            <span>
+                                <i class="fas fa-tag me-1" style="color: #2563eb;"></i>
+                                <strong>{{ note.get_note_type_display }}</strong>
+                                {% if note.author %}
+                                    <span class="ms-2">by {{ note.author.get_full_name }}</span>
+                                {% endif %}
+                            </span>
+                            <span>
+                                <i class="far fa-clock me-1"></i>
+                                {{ note.created_at|date:"d M Y, H:i" }}
+                            </span>
+                        </div>
+                        {% if note.title %}
+                            <div class="record-diagnosis">{{ note.title }}</div>
+                        {% endif %}
+                        <div class="record-notes">{{ note.content }}</div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-comment-medical"></i>
+                    <p>No clinical notes recorded.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ===== PRESCRIPTIONS ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-pills"></i> Prescriptions ({{ prescriptions|length }})</h5>
+                {% if user.role == 'doctor' %}
+                    <a href="{% url 'core:add_prescription' patient.id %}" class="btn-gradient">
+                        <i class="fas fa-plus"></i> New Prescription
+                    </a>
+                {% endif %}
+            </div>
+            {% if prescriptions %}
+                {% for p in prescriptions %}
+                    <div class="record-item">
+                        <div class="record-meta">
+                            <span>
+                                <i class="fas fa-user-md me-1" style="color: #2563eb;"></i>
+                                <strong>{{ p.doctor.get_doctor_display }}</strong>
+                            </span>
+                            <span>
+                                <i class="far fa-clock me-1"></i>
+                                {{ p.prescribed_date|date:"d M Y" }}
+                            </span>
+                        </div>
+                        <div class="record-diagnosis">{{ p.medication_name }}</div>
+                        <div class="record-notes">
+                            <strong>Dosage:</strong> {{ p.dosage }}
+                            {% if p.frequency %} &nbsp;•&nbsp; <strong>Frequency:</strong> {{ p.frequency }}{% endif %}
+                            {% if p.duration %} &nbsp;•&nbsp; <strong>Duration:</strong> {{ p.duration }}{% endif %}
+                        </div>
+                        {% if p.instructions %}
+                            <div class="record-notes mt-2"><em>{{ p.instructions }}</em></div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-pills"></i>
+                    <p>No prescriptions recorded.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- ===== REFERRALS ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-share-square"></i> Referrals ({{ referrals|length }})</h5>
+                {% if user.role == 'doctor' %}
+                    <a href="{% url 'core:create_referral' patient.id %}" class="btn-gradient">
+                        <i class="fas fa-plus"></i> New Referral
+                    </a>
+                {% endif %}
+            </div>
+            {% if referrals %}
+                {% for r in referrals %}
+                    <div class="record-item">
+                        <div class="record-meta">
+                            <span>
+                                <i class="fas fa-user-md me-1" style="color: #2563eb;"></i>
+                                <strong>Referred by {{ r.referring_doctor.get_doctor_display }}</strong>
+                            </span>
+                            <span>
+                                <i class="far fa-clock me-1"></i>
+                                {{ r.created_at|date:"d M Y" }}
+                            </span>
+                        </div>
+                        <div class="record-diagnosis">
+                            To: {{ r.referred_to }}{% if r.specialty %} ({{ r.specialty }}){% endif %}
+                        </div>
+                        <div class="record-notes">
+                            <strong>Reason:</strong> {{ r.reason }}
+                        </div>
+                        <span class="status-pill {{ r.status }}">{{ r.get_status_display|upper }}</span>
+                        <span class="status-pill" style="background:#e0e7ff;color:#3730a3;">{{ r.get_urgency_display|upper }}</span>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-share-square"></i>
+                    <p>No referrals recorded.</p>
+                </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

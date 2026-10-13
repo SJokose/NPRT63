@@ -1569,6 +1569,7 @@ FodyWeavers.xsd
 
 # Custom
 *.html*
+!Code/core/templates/**/*.html
 *py-imp/code/machines/Assets/EDA/*
 *py-imp/code/pump/Assets/EDA/*
 */data/*

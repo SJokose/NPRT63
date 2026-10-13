@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cancel Appointment - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    html body .page-title { text-align: center; margin-bottom: 35px; }
+    html body .page-title h1 {
+        font-weight: 800 !important;
+        color: #ffffff !important;
+        background: none !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    html body .page-title p { color: rgba(255,255,255,0.8) !important; }
+
+    .main-card {
+        background: #ffffff;
+        border-radius: 22px;
+        padding: 35px 40px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .warning-box {
+        background: #fef2f2;
+        border-left: 4px solid #eb3349;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        color: #7f1d1d;
+        font-size: 0.9rem;
+    }
+    .warning-box strong { color: #7f1d1d; }
+
+    .appointment-info {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border-left: 4px solid #2563eb;
+    }
+    .appointment-info h6 {
+        color: #0b1e4d;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+    .appointment-info p {
+        color: #475569;
+        margin-bottom: 6px;
+        font-size: 0.9rem;
+    }
+    .appointment-info p:last-child { margin-bottom: 0; }
+
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 800;
+        color: #0b1e4d;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .form-control {
+        border-radius: 12px !important;
+        border: 2px solid #e2e8f0 !important;
+        padding: 12px 16px !important;
+        background: #ffffff !important;
+        color: #0b1e4d !important;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+    }
+    .form-control:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13) !important;
+    }
+
+    .btn-cancel-confirm {
+        background: linear-gradient(135deg, #dc2626, #eb3349);
+        border: none;
+        color: white;
+        border-radius: 12px;
+        padding: 14px 24px;
+        font-weight: 700;
+        font-size: 1rem;
+        width: 100%;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    .btn-cancel-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-back {
+        background: transparent;
+        border: 2px solid #2563eb;
+        color: #2563eb;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        width: 100%;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        margin-top: 12px;
+        transition: all 0.3s;
+    }
+    .btn-back:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white;
+        border-color: transparent;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="position: relative; z-index: 3;">
+    <div class="page-title">
+        <h1><i class="fas fa-times-circle me-2"></i>Cancel Appointment</h1>
+        <p>This action cannot be undone</p>
+    </div>
+
+    <div class="main-card">
+
+        <div class="warning-box">
+            <strong>⚠ Warning:</strong> You are about to cancel this appointment.
+            The doctor will be notified, and you'll receive an SMS confirmation.
+        </div>
+
+        <div class="appointment-info">
+            <h6><i class="fas fa-calendar-alt me-2"></i>Appointment Details</h6>
+            <p><strong>Doctor:</strong> {{ appointment.doctor.get_doctor_display }}</p>
+            <p><strong>Date:</strong> {{ appointment.appointment_date|date:"l, d F Y" }}</p>
+            <p><strong>Time:</strong> {{ appointment.appointment_time|time:"H:i" }}</p>
+            <p><strong>Reason:</strong> {{ appointment.reason_for_visit }}</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-4">
+                <label class="form-label-custom">Reason for Cancellation (optional)</label>
+                <textarea name="reason" class="form-control" rows="3"
+                          placeholder="Tell us why you're cancelling..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-cancel-confirm">
+                <i class="fas fa-times me-2"></i>Confirm Cancellation
+            </button>
+
+            <a href="{% url 'core:my_appointments' %}" class="btn-back">
+                <i class="fas fa-arrow-left me-2"></i>Go Back
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

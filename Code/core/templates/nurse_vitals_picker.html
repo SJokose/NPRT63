@@ -1,0 +1,184 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Record Vitals - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important; }
+
+    .page-bg {
+        background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .page-bg .sparkle {
+        position: absolute; width: 6px; height: 6px;
+        background: white; border-radius: 50%;
+        box-shadow: 0 0 10px rgba(255,255,255,0.7), 0 0 20px rgba(167,139,250,0.5);
+        animation: floatGlitter linear infinite; opacity: 0;
+    }
+    .page-bg .sparkle:nth-child(1) { left: 5%; top: 10%; animation-duration: 6s; }
+    .page-bg .sparkle:nth-child(2) { left: 25%; top: 40%; animation-duration: 8s; animation-delay: 1s; }
+    .page-bg .sparkle:nth-child(3) { left: 60%; top: 70%; animation-duration: 7s; animation-delay: 2s; }
+    .page-bg .sparkle:nth-child(4) { left: 85%; top: 20%; animation-duration: 9s; animation-delay: 0.5s; }
+
+    @keyframes floatGlitter {
+        0%   { transform: translateY(0) scale(0.5); opacity: 0; }
+        30%  { opacity: 1; transform: translateY(-40px) scale(1.2); }
+        70%  { opacity: 0.8; transform: translateY(-80px) scale(0.8); }
+        100% { transform: translateY(-120px) scale(0.3); opacity: 0; }
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    .breadcrumb-nav {
+        display: flex; align-items: center; gap: 10px;
+        color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 20px;
+    }
+    .breadcrumb-nav a { color: rgba(255,255,255,0.7); text-decoration: none; }
+    .breadcrumb-nav a:hover { color: white; }
+
+    .page-title { text-align: center; color: white; margin-bottom: 30px; }
+    .page-title h1 {
+        font-weight: 800; font-size: 1.8rem;
+        background: linear-gradient(135deg, #a78bfa, #667eea);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .glass-card {
+        background: rgba(255,255,255,0.98);
+        border-radius: 22px;
+        padding: 30px 35px;
+        box-shadow: 0 15px 45px rgba(0,0,0,0.25);
+        margin-bottom: 24px;
+    }
+    .glass-card h5 {
+        font-weight: 800; color: #1a1a2e;
+        display: flex; align-items: center; gap: 10px;
+        margin-bottom: 18px;
+    }
+    .glass-card h5 i { color: #667eea; }
+
+    .patient-pick {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 14px 18px;
+        border-radius: 14px;
+        border: 2px solid #e8eaf2;
+        background: #f8f9fc;
+        text-decoration: none;
+        color: #1a1a2e;
+        transition: all 0.3s;
+        margin-bottom: 10px;
+    }
+    .patient-pick:hover {
+        border-color: #667eea;
+        background: white;
+        transform: translateX(6px);
+        box-shadow: 0 8px 20px rgba(102,126,234,0.15);
+        color: #1a1a2e;
+    }
+    .patient-pick .name { font-weight: 700; }
+    .patient-pick .meta { font-size: 0.8rem; color: #888; }
+    .patient-pick i { color: #667eea; }
+
+    .btn-outline {
+        background: transparent; border: 2px solid #667eea;
+        color: #667eea; border-radius: 12px;
+        padding: 12px 24px; font-weight: 700;
+        transition: all 0.3s; text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline:hover {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white; border-color: transparent;
+    }
+
+    .empty-state { text-align: center; padding: 30px; color: #888; }
+    .empty-state i { font-size: 2.5rem; color: #ccc; margin-bottom: 10px; display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg">
+    <span class="sparkle"></span><span class="sparkle"></span>
+    <span class="sparkle"></span><span class="sparkle"></span>
+
+    <div class="container page-content">
+
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:nurse_dashboard' %}"><i class="fas fa-home me-1"></i> Dashboard</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span style="color: white; font-weight: 600;">Record Vitals</span>
+        </div>
+
+        <div class="page-title">
+            <h1><i class="fas fa-heartbeat me-2"></i>Record Vitals</h1>
+            <p class="text-white-50">Select a patient to record their vitals</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Today's patients -->
+        <div class="glass-card">
+            <h5><i class="fas fa-calendar-day"></i> Today's Patients</h5>
+            {% if today_patients %}
+                {% for p in today_patients %}
+                    <a href="{% url 'core:nurse_record_vitals' p.id %}" class="patient-pick">
+                        <div>
+                            <div class="name">{{ p.get_full_name }}</div>
+                            <div class="meta">{{ p.sa_id_number|default:p.phone_number }}</div>
+                        </div>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    No patients scheduled for today
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Other patients (walk-ins) -->
+        <div class="glass-card">
+            <h5><i class="fas fa-users"></i> Other Patients / Walk-ins</h5>
+            {% if other_patients %}
+                {% for p in other_patients %}
+                    <a href="{% url 'core:nurse_record_vitals' p.id %}" class="patient-pick">
+                        <div>
+                            <div class="name">{{ p.get_full_name }}</div>
+                            <div class="meta">{{ p.sa_id_number|default:p.phone_number }}</div>
+                        </div>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-user-slash"></i>
+                    No other patients
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="{% url 'core:nurse_dashboard' %}" class="btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

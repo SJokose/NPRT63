@@ -1,0 +1,702 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book Appointment - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-bg {
+        position: relative !important;
+        min-height: calc(100vh - 76px) !important;
+        padding: 40px 0 !important;
+        overflow: hidden !important;
+        background-image: url('{% static "images/background.jpg" %}') !important;
+        background-size: cover !important;
+        background-position: center !important;
+        background-repeat: no-repeat !important;
+        background-attachment: fixed !important;
+    }
+    .dashboard-bg::before {
+        content: '' !important;
+        position: absolute !important;
+        inset: 0 !important;
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.55), rgba(15, 40, 80, 0.45)) !important;
+        z-index: 0 !important;
+        pointer-events: none !important;
+    }
+    .dashboard-content {
+        position: relative !important;
+        z-index: 2 !important;
+    }
+
+    .page-title { text-align: center; color: white; margin-bottom: 35px; }
+    .page-title h1 {
+        font-weight: 800; font-size: 2.2rem; margin-bottom: 8px;
+        background: linear-gradient(135deg, #93c5fd, #60a5fa, #bfdbfe);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        filter: drop-shadow(0 4px 15px rgba(59,130,246,0.5));
+    }
+    .page-title p { color: rgba(255,255,255,0.85); font-size: 0.95rem; }
+
+    .main-card {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 26px;
+        border: none;
+        box-shadow: 0 25px 70px rgba(0,0,0,0.45);
+        overflow: hidden;
+        position: relative;
+    }
+    .main-card::before {
+        content: '';
+        position: absolute; top: 0; left: 0; right: 0; height: 5px;
+        background: linear-gradient(90deg, #1e3a8a, #2563eb, #60a5fa, #1e3a8a);
+        background-size: 300% 100%;
+        animation: gradientMove 4s linear infinite;
+    }
+    @keyframes gradientMove {
+        0% { background-position: 0% 50%; }
+        100% { background-position: 300% 50%; }
+    }
+    .card-body-custom { padding: 35px 40px; }
+
+    .form-label-custom {
+        font-size: 0.8rem; font-weight: 800; color: #0b1e4d;
+        text-transform: uppercase; letter-spacing: 1.5px;
+        margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+    }
+    .form-label-custom::before {
+        content: ''; width: 5px; height: 18px;
+        background: linear-gradient(180deg, #1e3a8a, #2563eb);
+        border-radius: 5px;
+    }
+    .form-control, .form-select {
+        border-radius: 14px; border: 2px solid #e0e7ff;
+        padding: 14px 18px; background: #f5f8ff;
+        font-size: 0.95rem; transition: all 0.3s;
+        color: #0b1e4d; font-weight: 500;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 5px rgba(37, 99, 235, 0.12);
+        background: white;
+    }
+
+    /* CALENDAR */
+    .calendar-wrapper {
+        background: #f5f8ff;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 24px;
+        border: 2px solid #e0e7ff;
+    }
+    .calendar-header {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 18px;
+    }
+    .calendar-header h6 { font-weight: 800; color: #0b1e4d; margin: 0; font-size: 1rem; }
+    .calendar-nav { display: flex; gap: 8px; }
+    .calendar-nav button {
+        width: 32px; height: 32px;
+        border-radius: 10px; border: none;
+        background: white; color: #2563eb;
+        cursor: pointer; transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .calendar-nav button:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white; transform: translateY(-2px);
+    }
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 6px;
+    }
+    .calendar-day-label {
+        text-align: center; font-size: 0.7rem;
+        font-weight: 700; color: #888;
+        text-transform: uppercase; padding: 8px 0;
+        letter-spacing: 0.5px;
+    }
+    .calendar-day {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        background: white;
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        cursor: pointer; transition: all 0.25s;
+        border: 2px solid transparent;
+        position: relative;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #0b1e4d;
+        padding: 6px;
+    }
+    .calendar-day:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
+        border-color: #2563eb;
+    }
+    .calendar-day.empty { background: transparent; cursor: default; pointer-events: none; }
+    .calendar-day.empty:hover { transform: none; box-shadow: none; border-color: transparent; }
+    .calendar-day.closed { background: #eef2ff; color: #aaa; cursor: not-allowed; }
+    .calendar-day.selected {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb) !important;
+        color: white !important;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.5);
+        border-color: transparent !important;
+    }
+    .calendar-day.today { border-color: #2563eb; }
+
+    .calendar-day.available-green {
+        background: linear-gradient(135deg, #d4f5e0, #b8ebc9);
+        border-color: #38ef7d; color: #0d6b32;
+    }
+    .calendar-day.available-green:hover {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        color: white; transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(56, 239, 125, 0.5);
+    }
+    .calendar-day.busy {
+        background: linear-gradient(135deg, #f2994a, #f2c94c);
+        border-color: #e88936; color: white;
+        box-shadow: 0 4px 12px rgba(242, 153, 74, 0.4);
+    }
+    .calendar-day.busy:hover {
+        background: linear-gradient(135deg, #e88936, #e0b93a);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(242, 153, 74, 0.6);
+    }
+
+    .calendar-day.blocked-day {
+        background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+        border-color: #94a3b8; color: #475569;
+        cursor: not-allowed;
+    }
+    .calendar-day.blocked-day:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(100, 116, 139, 0.4);
+    }
+    .calendar-day.partly-blocked {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border-color: #94a3b8; color: #475569;
+    }
+
+    .calendar-day.full {
+        background: linear-gradient(135deg, #eb3349, #f45c43);
+        border-color: #d42a3d; color: white;
+        box-shadow: 0 4px 12px rgba(235, 51, 73, 0.4);
+    }
+    .calendar-day.full:hover {
+        background: linear-gradient(135deg, #d42a3d, #e04a35);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 25px rgba(235, 51, 73, 0.6);
+    }
+
+    /* TIME SLOTS */
+    .time-slots {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px; margin-top: 20px;
+    }
+    .time-slot {
+        padding: 12px 8px; border-radius: 12px;
+        text-align: center; font-weight: 700;
+        font-size: 0.85rem; cursor: pointer;
+        transition: all 0.3s;
+        border: 2px solid transparent;
+        color: white;
+    }
+    .time-slot.available {
+        background: linear-gradient(135deg, #11998e, #38ef7d);
+        box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+    }
+    .time-slot.available:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(17, 153, 142, 0.5);
+    }
+    .time-slot.booked {
+        background: linear-gradient(135deg, #eb3349, #f45c43);
+        opacity: 0.75; cursor: not-allowed;
+    }
+    .time-slot.hold {
+        background: linear-gradient(135deg, #f2994a, #f2c94c);
+        opacity: 0.75; cursor: not-allowed;
+    }
+    .time-slot.blocked-grey {
+        background: linear-gradient(135deg, #94a3b8, #64748b);
+        opacity: 0.85; cursor: not-allowed;
+    }
+    .time-slot.selected {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        transform: scale(1.05);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.5);
+    }
+
+    /* LEGEND */
+    .calendar-legend {
+        display: flex; flex-wrap: wrap;
+        gap: 16px; margin-top: 18px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(37, 99, 235, 0.12);
+    }
+    .legend-item {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 0.75rem; font-weight: 600; color: #555;
+    }
+    .legend-color { width: 16px; height: 16px; border-radius: 6px; }
+    .legend-available { background: linear-gradient(135deg, #11998e, #38ef7d); }
+    .legend-booked    { background: linear-gradient(135deg, #eb3349, #f45c43); }
+    .legend-hold      { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+    .legend-blocked   { background: linear-gradient(135deg, #94a3b8, #64748b); }
+    .legend-selected  { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+
+    /* INFO BOX */
+    .info-box-advanced {
+        background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(30, 58, 138, 0.08));
+        border-radius: 20px; padding: 24px;
+        border: 1px solid rgba(37, 99, 235, 0.15);
+    }
+    .info-box-advanced .icon-wrap {
+        width: 44px; height: 44px; border-radius: 12px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        display: flex; align-items: center; justify-content: center;
+        color: white; flex-shrink: 0;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+    .info-box-advanced h6 { font-weight: 800; color: #0b1e4d; margin-bottom: 12px; font-size: 0.95rem; }
+    .info-box-advanced ul { margin: 0; padding-left: 20px; }
+    .info-box-advanced li { color: #555; font-size: 0.85rem; margin-bottom: 8px; line-height: 1.5; }
+    .info-box-advanced li:last-child { margin-bottom: 0; }
+
+    /* SUBMIT */
+    .btn-submit {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        border: none; color: white; border-radius: 16px;
+        padding: 18px 30px; font-weight: 800; font-size: 1rem;
+        letter-spacing: 0.5px; transition: all 0.35s;
+        position: relative; overflow: hidden;
+        width: 100%; box-shadow: 0 12px 30px rgba(37, 99, 235, 0.45);
+    }
+    .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 18px 45px rgba(37, 99, 235, 0.6); color: white; }
+
+    /* SIDEBAR */
+    .sidebar-card {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 24px; padding: 26px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+        margin-bottom: 20px; position: relative;
+        overflow: hidden; transition: all 0.3s;
+    }
+    .sidebar-card:hover { transform: translateY(-5px); box-shadow: 0 30px 60px rgba(37, 99, 235, 0.3); }
+    .sidebar-card::before {
+        content: ''; position: absolute; top: 0; left: 0;
+        width: 100%; height: 4px;
+        background: linear-gradient(90deg, #1e3a8a, #2563eb);
+    }
+    .sidebar-card .sb-icon {
+        width: 48px; height: 48px; border-radius: 14px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        display: flex; align-items: center; justify-content: center;
+        color: white; margin-bottom: 16px;
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.35);
+    }
+    .sidebar-card h6 { font-weight: 800; color: #0b1e4d; margin-bottom: 14px; font-size: 1rem; }
+    .sidebar-card ul { padding-left: 20px; margin: 0; }
+    .sidebar-card li { font-size: 0.85rem; margin-bottom: 10px; color: #555; line-height: 1.5; }
+    .sidebar-card li:last-child { margin-bottom: 0; }
+
+    .btn-outline-gradient {
+        background: transparent; border: 2px solid #2563eb; color: #2563eb;
+        border-radius: 14px; padding: 12px 20px; font-weight: 700;
+        transition: all 0.3s; width: 100%;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white; border-color: transparent;
+        transform: translateY(-2px); box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+    }
+
+    /* FADE IN */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-in-up { animation: fadeInUp 0.7s ease-out forwards; opacity: 0; }
+    .fade-in-up:nth-child(1) { animation-delay: 0.1s; }
+    .fade-in-up:nth-child(2) { animation-delay: 0.25s; }
+    .fade-in-up:nth-child(3) { animation-delay: 0.4s; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-bg">
+    <div class="container dashboard-content">
+
+        {% if messages %}
+            {% for message in messages %}
+                <div style="padding: 16px 20px; border-radius: 14px; margin-bottom: 20px;
+                            font-weight: 700; display: flex; align-items: center; gap: 12px;
+                            position: relative; z-index: 5;
+                            {% if message.tags == 'error' %}
+                                background: linear-gradient(135deg, #fee2e2, #fecaca);
+                                color: #991b1b; border: 2px solid #f87171;
+                                box-shadow: 0 8px 20px rgba(153, 27, 27, 0.2);
+                            {% elif message.tags == 'success' %}
+                                background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+                                color: #14532d; border: 2px solid #4ade80;
+                                box-shadow: 0 8px 20px rgba(20, 83, 45, 0.2);
+                            {% elif message.tags == 'warning' %}
+                                background: linear-gradient(135deg, #fef3c7, #fde68a);
+                                color: #78350f; border: 2px solid #fbbf24;
+                                box-shadow: 0 8px 20px rgba(120, 53, 15, 0.2);
+                            {% else %}
+                                background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+                                color: #1e3a8a; border: 2px solid #60a5fa;
+                                box-shadow: 0 8px 20px rgba(30, 58, 138, 0.2);
+                            {% endif %}">
+                    <i class="fas fa-{% if message.tags == 'error' %}exclamation-triangle{% elif message.tags == 'success' %}check-circle{% else %}info-circle{% endif %}"
+                       style="font-size: 1.3rem;"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="page-title fade-in-up">
+            <h1><i class="fas fa-calendar-plus me-2"></i>Book Appointment</h1>
+            <p>Schedule your consultation in just a few clicks</p>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-8 fade-in-up">
+                <div class="main-card">
+                    <div class="card-body-custom">
+                        <form method="POST" id="appointmentForm">
+                            {% csrf_token %}
+
+                            <div class="mb-4">
+                                <label class="form-label-custom">Attending Doctor</label>
+                                {{ form.doctor }}
+                            </div>
+
+                            <div class="calendar-wrapper">
+                                <div class="calendar-header">
+                                    <h6 id="calendarMonthYear">September 2026</h6>
+                                    <div class="calendar-nav">
+                                        <button type="button" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                                        <button type="button" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="calendar-grid" id="calendarGrid"></div>
+
+                                <div class="calendar-legend">
+                                    <div class="legend-item"><span class="legend-color legend-available"></span> Available</div>
+                                    <div class="legend-item"><span class="legend-color legend-hold"></span> Pending Approval</div>
+                                    <div class="legend-item"><span class="legend-color legend-blocked"></span> Blocked / Holiday</div>
+                                    <div class="legend-item"><span class="legend-color legend-booked"></span> Confirmed / Locked</div>
+                                    <div class="legend-item"><span class="legend-color legend-selected"></span> Selected</div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label-custom">Available Time Slots</label>
+                                <div class="time-slots" id="timeSlots">
+                                    <p class="text-muted small">Select a date to view available slots</p>
+                                </div>
+                            </div>
+
+                            <div style="display: none;">
+                                {{ form.appointment_date }}
+                                {{ form.appointment_time }}
+                            </div>
+
+                            <div class="info-box-advanced mb-4">
+                                <div class="d-flex align-items-start">
+                                    <div class="icon-wrap me-3"><i class="fas fa-info-circle"></i></div>
+                                    <div class="flex-grow-1">
+                                        <h6>Important Notice</h6>
+                                        <ul>
+                                            <li>Please arrive <strong>15 minutes</strong> prior to your scheduled time.</li>
+                                            <li>Bring your valid <strong>South African ID</strong> or passport.</li>
+                                            <li>Cancellations require <strong>2 hours</strong> notice.</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label-custom">Reason for Visit</label>
+                                {{ form.reason_for_visit }}
+                            </div>
+
+                            <button type="submit" class="btn-submit">
+                                <i class="fas fa-check-circle me-2"></i>Confirm Booking
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 fade-in-up">
+                <div class="sidebar-card">
+                    <div class="sb-icon"><i class="fas fa-magic"></i></div>
+                    <h6>How It Works</h6>
+                    <ul>
+                        <li>Select a doctor</li>
+                        <li>Click a date on the calendar</li>
+                        <li>Pick an available time slot</li>
+                        <li>Confirm your booking</li>
+                    </ul>
+                </div>
+
+                <div class="sidebar-card">
+                    <div class="sb-icon"><i class="fas fa-headset"></i></div>
+                    <h6>Need Help?</h6>
+                    <p class="small text-muted mb-3">Call reception for assistance.</p>
+                    <button class="btn-outline-gradient" onclick="window.location.href='tel:+27123456789'">
+                        <i class="fas fa-phone me-2"></i>Call Reception
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="busyData" type="application/json">{{ busy_slots_json|default:"{}"|safe }}</script>
+<script id="confirmedData" type="application/json">{{ confirmed_slots_json|default:"{}"|safe }}</script>
+<script id="blockedData" type="application/json">{{ blocked_slots_json|default:"{}"|safe }}</script>
+<script id="holidaysData" type="application/json">{{ holidays_json|default:"{}"|safe }}</script>
+
+<script>
+    let currentDate = new Date();
+    let currentMonth = currentDate.getMonth();
+    let currentYear = currentDate.getFullYear();
+    let selectedDate = null;
+
+    const monthNames = ["January","February","March","April","May","June",
+                        "July","August","September","October","November","December"];
+
+    let busySlots = {};
+    let confirmedSlots = {};
+    let blockedSlots = {};
+    let publicHolidays = {};
+
+    try {
+        const el = document.getElementById('busyData');
+        if (el) { const raw = el.textContent.trim(); busySlots = raw ? JSON.parse(raw) : {}; }
+    } catch (e) { busySlots = {}; }
+
+    try {
+        const el2 = document.getElementById('confirmedData');
+        if (el2) { const raw2 = el2.textContent.trim(); confirmedSlots = raw2 ? JSON.parse(raw2) : {}; }
+    } catch (e) { confirmedSlots = {}; }
+
+    try {
+        const el3 = document.getElementById('blockedData');
+        if (el3) { const raw3 = el3.textContent.trim(); blockedSlots = raw3 ? JSON.parse(raw3) : {}; }
+    } catch (e) { blockedSlots = {}; }
+
+    try {
+        const el4 = document.getElementById('holidaysData');
+        if (el4) { const raw4 = el4.textContent.trim(); publicHolidays = raw4 ? JSON.parse(raw4) : {}; }
+    } catch (e) { publicHolidays = {}; }
+
+    function isPublicHoliday(dateStr) {
+        return publicHolidays.hasOwnProperty(dateStr);
+    }
+    function getHolidayName(dateStr) {
+        return publicHolidays[dateStr] || 'Public Holiday';
+    }
+
+    function getSelectedDoctorId() {
+        var sel = document.querySelector('select[name="doctor"]');
+        return sel ? sel.value : null;
+    }
+    function getBusySlots(dateStr) {
+        var id = getSelectedDoctorId();
+        return id ? (busySlots[id + '_' + dateStr] || []) : [];
+    }
+    function getConfirmedSlots(dateStr) {
+        var id = getSelectedDoctorId();
+        return id ? (confirmedSlots[id + '_' + dateStr] || []) : [];
+    }
+    function getBlockedSlots(dateStr) {
+        var id = getSelectedDoctorId();
+        return id ? (blockedSlots[id + '_' + dateStr] || []) : [];
+    }
+
+    const TOTAL_SLOTS = 17;
+
+    function renderCalendar() {
+        const grid = document.getElementById('calendarGrid');
+        const header = document.getElementById('calendarMonthYear');
+        header.textContent = monthNames[currentMonth] + ' ' + currentYear;
+        grid.innerHTML = '';
+
+        const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        days.forEach(d => {
+            const label = document.createElement('div');
+            label.className = 'calendar-day-label';
+            label.textContent = d;
+            grid.appendChild(label);
+        });
+
+        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+        const today = new Date();
+        today.setHours(0,0,0,0);
+
+        for (let i = 0; i < firstDay; i++) {
+            const empty = document.createElement('div');
+            empty.className = 'calendar-day empty';
+            grid.appendChild(empty);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const cell = document.createElement('div');
+            cell.className = 'calendar-day';
+            cell.textContent = day;
+
+            const dateObj = new Date(currentYear, currentMonth, day);
+            dateObj.setHours(0,0,0,0);
+
+            if (dateObj.getDay() === 0 || dateObj.getDay() === 6) {
+                cell.classList.add('closed');
+                grid.appendChild(cell);
+                continue;
+            }
+            if (dateObj < today) {
+                cell.classList.add('closed');
+                grid.appendChild(cell);
+                continue;
+            }
+            if (dateObj.getTime() === today.getTime()) {
+                cell.classList.add('today');
+            }
+
+            const dateStr = formatDate(dateObj);
+
+            if (isPublicHoliday(dateStr)) {
+                cell.classList.add('blocked-day');
+                cell.title = getHolidayName(dateStr);
+                grid.appendChild(cell);
+                continue;
+            }
+
+            const pending   = getBusySlots(dateStr);
+            const confirmed = getConfirmedSlots(dateStr);
+            const blocked   = getBlockedSlots(dateStr);
+            const unavailableCount = pending.length + confirmed.length + blocked.length;
+
+            if (blocked.length >= TOTAL_SLOTS) {
+                cell.classList.add('blocked-day');
+                cell.title = 'Unavailable — doctor block';
+            } else if (confirmed.length > 0 || unavailableCount >= TOTAL_SLOTS) {
+                cell.classList.add('full');
+            } else if (blocked.length > 0) {
+                cell.classList.add('partly-blocked');
+            } else if (unavailableCount >= 1) {
+                cell.classList.add('busy');
+            } else {
+                cell.classList.add('available-green');
+            }
+
+            cell.onclick = () => selectDate(dateObj, cell);
+            grid.appendChild(cell);
+        }
+    }
+
+    function formatDate(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + d;
+    }
+
+    function selectDate(dateObj, cell) {
+        document.querySelectorAll('.calendar-day').forEach(c => c.classList.remove('selected'));
+        cell.classList.add('selected');
+        selectedDate = dateObj;
+
+        const dateInput = document.querySelector('input[name="appointment_date"]');
+        if (dateInput) dateInput.value = formatDate(dateObj);
+
+        renderTimeSlots(dateObj);
+    }
+
+    function renderTimeSlots(dateObj) {
+        const container = document.getElementById('timeSlots');
+        const dateStr = formatDate(dateObj);
+        const pending   = getBusySlots(dateStr);
+        const confirmed = getConfirmedSlots(dateStr);
+        const blocked   = getBlockedSlots(dateStr);
+        container.innerHTML = '';
+
+        if (isPublicHoliday(dateStr)) {
+            const msg = document.createElement('p');
+            msg.className = 'text-muted small';
+            msg.innerHTML = '<strong>' + getHolidayName(dateStr) + '</strong> — closed for the holiday. Please choose another date.';
+            container.appendChild(msg);
+            return;
+        }
+
+        for (let hour = 9; hour <= 17; hour++) {
+            for (let min of [0, 30]) {
+                if (hour === 17 && min === 30) continue;
+                const timeStr = String(hour).padStart(2,'0') + ':' + String(min).padStart(2,'0');
+                const slot = document.createElement('div');
+                slot.className = 'time-slot available';
+                slot.textContent = timeStr;
+
+                if (blocked.includes(timeStr)) {
+                    slot.classList.remove('available');
+                    slot.classList.add('blocked-grey');
+                    slot.title = 'Doctor unavailable / public holiday';
+                } else if (confirmed.includes(timeStr)) {
+                    slot.classList.remove('available');
+                    slot.classList.add('booked');
+                    slot.title = 'Confirmed — unavailable';
+                } else if (pending.includes(timeStr)) {
+                    slot.classList.remove('available');
+                    slot.classList.add('hold');
+                    slot.title = 'Pending doctor approval';
+                } else {
+                    slot.onclick = () => selectTimeSlot(timeStr, slot);
+                }
+                container.appendChild(slot);
+            }
+        }
+    }
+
+    function selectTimeSlot(timeStr, slot) {
+        document.querySelectorAll('.time-slot').forEach(s => s.classList.remove('selected'));
+        slot.classList.add('selected');
+        const timeInput = document.querySelector('input[name="appointment_time"]');
+        if (timeInput) timeInput.value = timeStr;
+    }
+
+    function changeMonth(delta) {
+        currentMonth += delta;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        var doctorSelect = document.querySelector('select[name="doctor"]');
+        if (doctorSelect) {
+            doctorSelect.addEventListener('change', function() {
+                selectedDate = null;
+                renderCalendar();
+                document.getElementById('timeSlots').innerHTML =
+                    '<p class="text-muted small">Select a date to view available slots</p>';
+            });
+        }
+        renderCalendar();
+    });
+</script>
+
+{% endblock %}

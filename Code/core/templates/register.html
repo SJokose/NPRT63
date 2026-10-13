@@ -1,0 +1,511 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Patient Registration - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== FULL PAGE BACKGROUND ===== */
+    .bg-picture {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('{% static "images/background.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        z-index: -2;
+    }
+
+    .bg-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(10, 25, 47, 0.75), rgba(15, 40, 80, 0.65));
+        z-index: -1;
+        pointer-events: none;
+    }
+
+    .register-page {
+        min-height: calc(100vh - 80px);
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 20px;
+        z-index: 1;
+    }
+
+    /* ===== REGISTER WRAPPER — GLASS (restored) ===== */
+    .register-wrapper {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 30px;
+        overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.5);
+        max-width: 1000px;
+        width: 100%;
+        max-height: 95vh;
+        overflow-y: auto;
+    }
+
+    /* ===== BRAND SIDE — GLASS (restored) ===== */
+    .brand-side {
+        background: rgba(255, 255, 255, 0.05);
+        border-right: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 50px 40px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    .brand-side .logo-img {
+        max-width: 180px;
+        height: auto;
+        margin-bottom: 20px;
+        position: relative;
+        z-index: 1;
+        border-radius: 15px;
+        filter: drop-shadow(0 10px 30px rgba(0,0,0,0.4));
+    }
+    .brand-side h2 {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        color: #ffffff;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .brand-side p {
+        color: rgba(255, 255, 255, 0.95);
+        font-size: 1rem;
+        max-width: 300px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .brand-side .features {
+        margin-top: 30px;
+        text-align: left;
+        width: 100%;
+        max-width: 280px;
+        padding: 0;
+        list-style: none;
+    }
+    .brand-side .features li {
+        padding: 8px 0;
+        font-size: 0.9rem;
+        color: rgba(255, 255, 255, 0.95);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+    .brand-side .features li i {
+        color: #93c5fd;
+        font-size: 1.05rem;
+    }
+
+    /* ===== FORM SIDE — GLASS (restored) ===== */
+    .form-side {
+        padding: 35px 35px;
+        flex: 1.2;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .form-side h3 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin-bottom: 2px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    .form-side .subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.4);
+    }
+
+    /* ===== FORM LABELS (white text on glass) ===== */
+    .form-side .form-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #ffffff;
+        margin-bottom: 3px;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+
+    /* =====================================================
+       INPUT FIELDS — NOW SOLID WHITE INSIDE
+       ===================================================== */
+    .form-side .form-control,
+    .form-side .form-select {
+        border-radius: 10px;
+        padding: 9px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        font-size: 0.9rem;
+        background: #ffffff;
+        color: #0b1e4d;
+        transition: all 0.3s;
+    }
+    .form-side .form-control::placeholder {
+        color: #94a3b8;
+    }
+    .form-side .form-control:focus,
+    .form-side .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.3);
+        background: #ffffff;
+        color: #0b1e4d;
+    }
+
+    /* Fix the calendar icon so it's dark on the white input */
+    .form-side input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: none;
+        opacity: 0.6;
+        cursor: pointer;
+    }
+
+    /* ===== VALIDATION ===== */
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+        border-color: #dc3545 !important;
+        background-color: #ffffff !important;
+        box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25) !important;
+    }
+    .invalid-feedback {
+        display: block !important;
+        color: #ffb3ba;
+        font-size: 0.75rem;
+        margin-top: 3px;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+    .form-side .form-text {
+        font-size: 0.7rem;
+        color: rgba(255, 255, 255, 0.65);
+        margin-top: 2px;
+    }
+
+    /* ===== SUBMIT BUTTON (unchanged) ===== */
+    .form-side .btn-register {
+        background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+        border: none;
+        border-radius: 10px;
+        padding: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        color: #ffffff !important;
+        transition: all 0.3s;
+        margin-top: 10px;
+        box-shadow: 0 8px 25px rgba(37,99,235,0.4);
+    }
+    .form-side .btn-register:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 35px rgba(37,99,235,0.6);
+        color: #ffffff !important;
+    }
+    .form-side .btn-register i {
+        color: #ffffff !important;
+    }
+
+    /* ===== SIGN-IN LINK (unchanged) ===== */
+    .form-side .signin-link {
+        text-align: center;
+        margin-top: 15px;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.85);
+    }
+    .form-side .signin-link a {
+        color: #93c5fd;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .form-side .signin-link a:hover { text-decoration: underline; }
+
+    /* ===== STAFF LINK BOX (unchanged) ===== */
+    .staff-link {
+        text-align: center;
+        margin-top: 12px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 10px;
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+    .staff-link a {
+        color: #93c5fd;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .staff-link a:hover { text-decoration: underline; }
+
+    /* ===== FOOTER (unchanged) ===== */
+    .form-side .footer-text {
+        text-align: center;
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 0.65rem;
+        margin-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 15px;
+    }
+    .form-side .footer-text strong { color: rgba(255, 255, 255, 0.85); }
+
+    /* ===== PASSWORD STRENGTH BAR (unchanged) ===== */
+    .password-strength {
+        height: 4px;
+        border-radius: 4px;
+        margin-top: 4px;
+        transition: all 0.3s;
+    }
+    .password-strength.weak { width: 33%; background: #e53e3e; }
+    .password-strength.medium { width: 66%; background: #ecc94b; }
+    .password-strength.strong { width: 100%; background: #38a169; }
+
+    /* ===== PASSWORD TOGGLE (fix for white input) ===== */
+    .password-wrapper { position: relative; }
+    .password-wrapper .form-control { padding-right: 45px; }
+    .password-wrapper .toggle-password {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #64748b;
+        cursor: pointer;
+        font-size: 1.1rem;
+        padding: 5px;
+    }
+    .password-wrapper .toggle-password:hover { color: #2563eb; }
+
+    /* ===== ALERTS (unchanged) ===== */
+    .alert {
+        border-radius: 10px;
+        font-size: 0.8rem;
+        padding: 8px 14px;
+    }
+
+    /* ===== RESPONSIVE (unchanged) ===== */
+    @media (max-width: 768px) {
+        .register-wrapper { flex-direction: column; max-height: 98vh; }
+        .brand-side { padding: 25px 20px; border-right: none; border-bottom: 1px solid rgba(255, 255, 255, 0.15); }
+        .brand-side .logo-img { max-width: 130px; }
+        .brand-side h2 { font-size: 1.6rem; }
+        .brand-side .features { display: none; }
+        .form-side { padding: 25px 20px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="bg-picture"></div>
+<div class="bg-overlay"></div>
+
+<div class="register-page">
+    <div class="register-wrapper">
+
+        <div class="brand-side">
+            <img src="{% static 'images/logoh.jpg' %}" alt="MediSync SA Logo" class="logo-img">
+            <h2>MediSync SA</h2>
+            <p>Digital Healthcare Management System</p>
+            <ul class="features">
+                <li><i class="fas fa-check-circle"></i> Secure Patient Records</li>
+                <li><i class="fas fa-check-circle"></i> Online Appointment Booking</li>
+                <li><i class="fas fa-check-circle"></i> SMS Reminders</li>
+                <li><i class="fas fa-check-circle"></i> POPIA Compliant</li>
+            </ul>
+        </div>
+
+        <div class="form-side">
+            <h3>Create Patient Account</h3>
+            <p class="subtitle">Register with your SA ID to get started</p>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Please fix the errors below.</strong>
+                </div>
+            {% endif %}
+
+            <form method="POST" id="registerForm" novalidate>
+                {% csrf_token %}
+
+                <input type="hidden" name="role" value="patient">
+
+                <div class="row g-2">
+                    <div class="col-md-6">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="first_name" id="first_name"
+                               class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+                               placeholder="First Name" value="{{ form.first_name.value|default:'' }}" required>
+                        {% if form.first_name.errors %}
+                            <div class="invalid-feedback">{% for e in form.first_name.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Surname</label>
+                        <input type="text" name="last_name" id="last_name"
+                               class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+                               placeholder="Surname" value="{{ form.last_name.value|default:'' }}" required>
+                        {% if form.last_name.errors %}
+                            <div class="invalid-feedback">{% for e in form.last_name.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-2 mt-2">
+                    <div class="col-md-6">
+                        <label class="form-label">SA ID Number</label>
+                        <input type="text" name="sa_id_number" id="sa_id_number"
+                               class="form-control {% if form.sa_id_number.errors %}is-invalid{% endif %}"
+                               placeholder="0000000000000"
+                               value="{{ form.sa_id_number.value|default:'' }}"
+                               maxlength="13" minlength="13" required>
+                        <div class="form-text">13-digit SA ID — used as your login</div>
+                        {% if form.sa_id_number.errors %}
+                            <div class="invalid-feedback">{% for e in form.sa_id_number.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="date_of_birth" id="date_of_birth"
+                               class="form-control {% if form.date_of_birth.errors %}is-invalid{% endif %}"
+                               value="{{ form.date_of_birth.value|default:'' }}" required>
+                        {% if form.date_of_birth.errors %}
+                            <div class="invalid-feedback">{% for e in form.date_of_birth.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-2 mt-2">
+                    <div class="col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" id="email"
+                               class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                               placeholder="your@email.com" value="{{ form.email.value|default:'' }}" required>
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback">{% for e in form.email.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Phone</label>
+                        <input type="tel" name="phone_number" id="phone_number"
+                               class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}"
+                               placeholder="0712345678" value="{{ form.phone_number.value|default:'' }}" required>
+                        {% if form.phone_number.errors %}
+                            <div class="invalid-feedback">{% for e in form.phone_number.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-2 mt-2">
+                    <div class="col-md-6">
+                        <label class="form-label">Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password1" id="password1"
+                                   class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+                                   placeholder="**********" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('password1', this)">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        <div class="password-strength" id="passwordStrength"></div>
+                        <div class="form-text">Minimum 8 characters</div>
+                        {% if form.password1.errors %}
+                            <div class="invalid-feedback">{% for e in form.password1.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Confirm Password</label>
+                        <div class="password-wrapper">
+                            <input type="password" name="password2" id="password2"
+                                   class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+                                   placeholder="**********" required>
+                            <button type="button" class="toggle-password" onclick="togglePassword('password2', this)">
+                                <i class="fas fa-eye-slash"></i>
+                            </button>
+                        </div>
+                        {% if form.password2.errors %}
+                            <div class="invalid-feedback">{% for e in form.password2.errors %}{{ e }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-register">
+                    <i class="fas fa-user-plus me-2"></i>Complete Registration
+                </button>
+            </form>
+
+            <div class="signin-link">
+                Already registered? <a href="{% url 'core:login' %}">Sign In</a>
+            </div>
+
+            <div class="staff-link">
+                <i class="fas fa-user-md me-2" style="color: #93c5fd;"></i>
+                Healthcare professional?
+                <a href="{% url 'core:register_staff' %}">Register as Staff Member →</a>
+            </div>
+
+            <div class="footer-text">
+                &copy; 2026 <strong>MediSync SA</strong>. POPIA Compliant. All rights reserved.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        const icon = button.querySelector('i');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        }
+    }
+
+    const pwdInput = document.getElementById('password1');
+    if (pwdInput) {
+        pwdInput.addEventListener('input', function () {
+            const password = this.value;
+            const strengthBar = document.getElementById('passwordStrength');
+            let strength = 0;
+            if (password.length >= 8) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+            strengthBar.className = 'password-strength';
+            if (strength <= 1) strengthBar.classList.add('weak');
+            else if (strength === 2) strengthBar.classList.add('medium');
+            else strengthBar.classList.add('strong');
+        });
+    }
+</script>
+
+{% endblock %}

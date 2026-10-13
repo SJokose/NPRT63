@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Header Navigation -->
+    <nav class="flex items-center gap-2 text-xs font-medium text-slate-500">
+        <a href="{% url 'core:staff_dashboard' %}" class="hover:text-indigo-600 transition">
+            <i class="fa-solid fa-house mr-1"></i> Dashboard
+        </a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+        <span class="text-slate-800 font-semibold">Active Doctor Queue</span>
+    </nav>
+
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                <i class="fa-solid fa-user-clock text-indigo-600"></i> Patient Queue Management
+            </h1>
+            <p class="text-slate-500 text-xs mt-1">
+                View checked-in clinic patients and manage consultation workflows in real-time.
+            </p>
+        </div>
+    </div>
+
+    <!-- Active Queue Table Card -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-600">
+                <thead class="bg-slate-50 text-slate-700 uppercase font-bold border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-4">Queue #</th>
+                        <th class="px-6 py-4">Patient Name</th>
+                        <th class="px-6 py-4">SA ID Number</th>
+                        <th class="px-6 py-4">Department</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4 text-right">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 font-medium">
+                    {% for item in queue_list %}
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="px-6 py-4 font-bold text-indigo-600 text-sm">#{{ item.queuenumber }}</td>
+                        <td class="px-6 py-4 font-bold text-slate-900">
+                            {{ item.patientid.userid.name }} {{ item.patientid.userid.surname }}
+                        </td>
+                        <td class="px-6 py-4 font-mono text-slate-500">{{ item.patientid.saidnumber }}</td>
+                        <td class="px-6 py-4">{{ item.department }}</td>
+                        <td class="px-6 py-4">
+                            {% if item.status == 'Waiting' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Waiting
+                                </span>
+                            {% elif item.status == 'In Consultation' %}
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span> In Consultation
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            {% if item.status == 'Waiting' %}
+                                <a href="{% url 'core:update_queue_status' item.checkinid 'In Consultation' %}" 
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-sm transition">
+                                    <i class="fa-solid fa-stethoscope text-[10px]"></i> Call Patient
+                                </a>
+                            {% elif item.status == 'In Consultation' %}
+                                <a href="{% url 'core:patient_file' item.patientid.patientid %}" 
+                                   class="inline-flex items-center gap-1 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg shadow-sm transition">
+                                    <i class="fa-solid fa-folder-open text-[10px]"></i> Open Medical File
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                            <i class="fa-solid fa-clipboard-check text-2xl mb-2 block"></i>
+                            No patients currently waiting in queue.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

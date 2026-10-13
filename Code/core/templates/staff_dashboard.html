@@ -1,0 +1,624 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Staff Dashboard - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== PAGE BACKGROUND ===== */
+    .dashboard-bg {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-content { position: relative; z-index: 2; }
+
+    /* ===== WELCOME BANNER — BLUE ===== */
+    .welcome-banner {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        border-radius: 25px;
+        padding: 35px 40px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 15px 40px rgba(37, 99, 235, 0.4);
+        margin-bottom: 25px;
+    }
+    .welcome-banner::before {
+        content: '';
+        position: absolute;
+        top: -60%; right: -10%;
+        width: 350px; height: 350px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: shimmer 8s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+        0%, 100% { transform: translate(0, 0); }
+        50%      { transform: translate(15%, 15%); }
+    }
+    .welcome-banner h2 { font-weight: 800; font-size: 1.8rem; margin-bottom: 8px; position: relative; z-index: 1; }
+    .welcome-banner p { margin: 0; opacity: 0.9; position: relative; z-index: 1; }
+    .welcome-banner .role-badge {
+        display: inline-block;
+        padding: 6px 16px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ===== CLICKABLE STAT CARDS ===== */
+    .stat-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+        height: 100%;
+    }
+    .stat-card {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+        border: 2px solid transparent;
+    }
+    .stat-card-link:hover .stat-card {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 45px rgba(37, 99, 235, 0.3);
+        border-color: #2563eb;
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #1e3a8a, #2563eb);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    .stat-card-link:hover .stat-card::before { opacity: 1; }
+
+    .stat-icon {
+        width: 60px; height: 60px;
+        display: flex; align-items: center; justify-content: center;
+        border-radius: 18px;
+        color: white;
+        margin-bottom: 15px;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    }
+    .stat-icon i { font-size: 1.6rem; }
+    .stat-label {
+        color: #64748b; font-size: 0.75rem; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .stat-value { font-size: 2.2rem; font-weight: 700; color: #0b1e4d; line-height: 1; }
+    .stat-hint {
+        font-size: 0.7rem; color: #2563eb; font-weight: 600;
+        margin-top: 8px; display: flex; align-items: center; gap: 4px;
+    }
+
+    /* ===== GLASS CARDS ===== */
+    .glass-card {
+        background: #ffffff;
+        border-radius: 22px;
+        box-shadow: 0 10px 35px rgba(0,0,0,0.15);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        margin-bottom: 24px;
+    }
+    .glass-card:hover { box-shadow: 0 15px 45px rgba(37, 99, 235, 0.25); }
+    .glass-card .card-header {
+        background: transparent;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+        padding: 20px 25px;
+        display: flex; justify-content: space-between; align-items: center;
+    }
+    .glass-card .card-header h5 {
+        font-weight: 700; color: #0b1e4d; margin: 0;
+        display: flex; align-items: center; gap: 10px;
+    }
+    .glass-card .card-header h5 i { color: #2563eb; }
+
+    /* ===== APPOINTMENT ITEMS ===== */
+    .appointment-item {
+        padding: 18px 25px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+    }
+    .appointment-item:last-child { border-bottom: none; }
+    .appointment-item:hover {
+        background: linear-gradient(90deg, rgba(37, 99, 235, 0.05), transparent);
+        padding-left: 30px;
+    }
+    .appointment-avatar {
+        width: 45px; height: 45px; border-radius: 12px;
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1rem; font-weight: 700;
+        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+        flex-shrink: 0;
+    }
+
+    /* ===== STATUS BADGES ===== */
+    .status-badge {
+        padding: 5px 12px; border-radius: 20px;
+        font-size: 0.7rem; font-weight: 700;
+        letter-spacing: 0.5px; text-transform: uppercase;
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+    .status-badge.pending     { background: linear-gradient(135deg, #f2994a, #f2c94c); color: white; }
+    .status-badge.confirmed   { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+    .status-badge.completed   { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; }
+    .status-badge.cancelled   { background: linear-gradient(135deg, #eb3349, #f45c43); color: white; }
+    .status-badge.waiting     { background: linear-gradient(135deg, #f2994a, #f2c94c); color: white; }
+    .status-badge.in_progress { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; }
+
+    /* ===== BUTTONS ===== */
+    .btn-gradient {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+        border: none;
+        color: #ffffff !important;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+        color: #ffffff !important;
+    }
+    .btn-gradient i { color: #ffffff !important; }
+
+    .btn-outline-gradient {
+        background: transparent;
+        border: 2px solid #2563eb;
+        color: #2563eb !important;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: #ffffff !important;
+        border-color: transparent;
+        transform: translateY(-2px);
+    }
+
+    /* ===== QUICK ACTION TILES ===== */
+    .quick-action {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        text-decoration: none;
+        color: #0b1e4d;
+        transition: all 0.3s ease;
+        display: block;
+        height: 100%;
+    }
+    .quick-action:hover {
+        border-color: #2563eb;
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(37, 99, 235, 0.2);
+        color: #0b1e4d;
+    }
+    .quick-action .qa-icon {
+        width: 50px; height: 50px;
+        border-radius: 14px;
+        margin: 0 auto 12px;
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.3rem;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+    .quick-action .qa-label {
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #0b1e4d;
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 50px 20px;
+        color: #64748b;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 15px;
+    }
+    .empty-state p { margin: 0; font-size: 0.9rem; }
+
+    /* ===== INFO ROW ===== */
+    .info-row {
+        display: flex; justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.08);
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: #64748b; font-size: 0.85rem; }
+    .info-row .value { font-weight: 600; color: #0b1e4d; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="dashboard-bg">
+    <div class="container dashboard-content">
+
+        <!-- ===== WELCOME BANNER ===== -->
+        <div class="welcome-banner">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+                <div>
+                    <h2>
+                        {% if user.role == 'doctor' %}
+                            <i class="fas fa-user-md me-2"></i>
+                        {% elif user.role == 'nurse' %}
+                            <i class="fas fa-user-nurse me-2"></i>
+                        {% elif user.role == 'receptionist' %}
+                            <i class="fas fa-user-tie me-2"></i>
+                        {% elif user.role == 'admin' %}
+                            <i class="fas fa-user-shield me-2"></i>
+                        {% else %}
+                            <i class="fas fa-user me-2"></i>
+                        {% endif %}
+                        Welcome, {{ user.get_doctor_display }}!
+                    </h2>
+                    <p>Here's your dashboard overview for today.</p>
+                    <span class="role-badge">
+                        {% if user.role == 'doctor' %}<i class="fas fa-stethoscope me-1"></i>{% endif %}
+                        {% if user.role == 'nurse' %}<i class="fas fa-briefcase-medical me-1"></i>{% endif %}
+                        {% if user.role == 'receptionist' %}<i class="fas fa-headset me-1"></i>{% endif %}
+                        {% if user.role == 'admin' %}<i class="fas fa-crown me-1"></i>{% endif %}
+                        {{ user.get_role_display }}
+                    </span>
+                </div>
+                <div class="text-end">
+                    <small class="opacity-75 d-block">Staff ID</small>
+                    <strong style="font-size: 1.1rem;">{{ user.staff_id }}</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CLICKABLE STAT CARDS ===== -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'core:search_patient' %}" class="stat-card-link">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <p class="stat-label">Total Patients</p>
+                        <div class="stat-value">{{ total_patients }}</div>
+                        <div class="stat-hint"><i class="fas fa-arrow-right"></i> Click to view all</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'core:manage_appointments' %}" class="stat-card-link">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-calendar-day"></i></div>
+                        <p class="stat-label">Today's Appointments</p>
+                        <div class="stat-value">{{ today_appointments }}</div>
+                        <div class="stat-hint"><i class="fas fa-arrow-right"></i> View details</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'core:manage_appointments' %}?status=completed" class="stat-card-link">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                        <p class="stat-label">Completed Today</p>
+                        <div class="stat-value">{{ completed_today }}</div>
+                        <div class="stat-hint"><i class="fas fa-arrow-right"></i> View completed</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <a href="{% url 'core:manage_appointments' %}?status=pending" class="stat-card-link">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+                        <p class="stat-label">Pending Approvals</p>
+                        <div class="stat-value">{{ pending_count }}</div>
+                        <div class="stat-hint"><i class="fas fa-arrow-right"></i> Approve now</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- ===== QUICK ACTIONS ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'core:search_patient' %}" class="quick-action">
+                            <div class="qa-icon"><i class="fas fa-search"></i></div>
+                            <div class="qa-label">Search Patient</div>
+                        </a>
+                    </div>
+
+                    {# Queue Management — receptionist, nurse, admin only #}
+                    {% if user.role == 'receptionist' or user.role == 'nurse' or user.role == 'admin' %}
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'core:manage_queue' %}" class="quick-action">
+                            <div class="qa-icon"><i class="fas fa-list-ol"></i></div>
+                            <div class="qa-label">Queue Management</div>
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'core:manage_appointments' %}" class="quick-action">
+                            <div class="qa-icon"><i class="fas fa-calendar-alt"></i></div>
+                            <div class="qa-label">All Appointments</div>
+                        </a>
+                    </div>
+
+                    {# Reports — admin only #}
+                    {% if user.role == 'admin' %}
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'core:reports_dashboard' %}" class="quick-action">
+                            <div class="qa-icon"><i class="fas fa-chart-line"></i></div>
+                            <div class="qa-label">Reports</div>
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if user.role == 'doctor' %}
+                    <div class="col-lg-3 col-md-6">
+                        <a href="{% url 'core:block_slots' %}" class="quick-action">
+                            <div class="qa-icon"><i class="fas fa-ban"></i></div>
+                            <div class="qa-label">Block Slots</div>
+                        </a>
+                    </div>
+                    {% endif %}
+
+                    {% if user.role == 'doctor' %}
+                    <div class="col-lg-3 col-md-6">
+                         <a href="{% url 'core:referrals_received' %}" class="quick-action">
+                            <div class="qa-icon"><i class="fas fa-inbox"></i></div>
+                            <div class="qa-label">Referrals Received</div>
+                         </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== MAIN CONTENT ===== -->
+        <div class="row g-4">
+
+            <!-- ===== LEFT COLUMN ===== -->
+            <div class="col-lg-8">
+
+                {% if pending_appointments %}
+                    <div class="glass-card">
+                        <div class="card-header">
+                            <h5>
+                                <i class="fas fa-hourglass-half"></i>
+                                Pending Approvals for You
+                                <span class="badge" style="background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; margin-left: 8px;">
+                                    {{ pending_count }}
+                                </span>
+                            </h5>
+                            <a href="{% url 'core:manage_appointments' %}?status=pending" class="btn-outline-gradient btn-sm">
+                                View All <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        <div class="card-body p-0">
+                            {% for appt in pending_appointments %}
+                                <div class="appointment-item">
+                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="appointment-avatar me-3">
+                                                {{ appt.patient.first_name|first|upper }}{{ appt.patient.last_name|first|upper }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">{{ appt.patient.get_full_name }}</h6>
+                                                <p class="text-muted small mb-1">
+                                                    <i class="far fa-calendar-alt me-1"></i>{{ appt.appointment_date|date:"D, d M Y" }}
+                                                    <span class="mx-2">•</span>
+                                                    <i class="far fa-clock me-1"></i>{{ appt.appointment_time|time:"H:i" }}
+                                                </p>
+                                                <p class="small text-muted mb-0">
+                                                    <i class="fas fa-comment-medical me-1"></i>{{ appt.reason_for_visit|truncatechars:60 }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            {# Approve button — doctors and admins only #}
+                                            {% if user.role == 'doctor' or user.role == 'admin' %}
+                                            <form method="POST" action="{% url 'core:manage_appointments' %}" style="display:inline;">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="appointment_id" value="{{ appt.id }}">
+                                                <input type="hidden" name="action" value="approve">
+                                                <button type="submit" class="btn-gradient btn-sm">
+                                                    <i class="fas fa-check"></i> Approve
+                                                </button>
+                                            </form>
+                                            {% endif %}
+
+                                            {% if user.role == 'doctor' or user.role == 'nurse' or user.role == 'admin' %}
+                                                <a href="{% url 'core:view_patient_records' appt.patient.id %}" class="btn-outline-gradient btn-sm">
+                                                    <i class="fas fa-file-medical"></i> Records
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-calendar-check"></i> Today's Appointments</h5>
+                        <a href="{% url 'core:manage_appointments' %}" class="btn-outline-gradient btn-sm">
+                            View All <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if today_appointments_list %}
+                            {% for appt in today_appointments_list %}
+                                <div class="appointment-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="d-flex align-items-center">
+                                            <div class="appointment-avatar me-3">
+                                                {{ appt.patient.first_name|first|upper }}{{ appt.patient.last_name|first|upper }}
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-1 fw-bold">{{ appt.patient.get_full_name }}</h6>
+                                                <p class="text-muted small mb-1">
+                                                    <i class="far fa-clock me-1"></i>{{ appt.appointment_time|time:"H:i" }}
+                                                    <span class="mx-2">•</span>
+                                                    <i class="fas fa-comment-medical me-1"></i>{{ appt.reason_for_visit|truncatechars:50 }}
+                                                </p>
+                                                <span class="status-badge {{ appt.status }}">{{ appt.status|upper }}</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            {% if user.role == 'doctor' or user.role == 'nurse' or user.role == 'admin' %}
+                                                <a href="{% url 'core:view_patient_records' appt.patient.id %}" class="btn-gradient btn-sm">
+                                                    <i class="fas fa-file-medical"></i> Records
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'core:manage_appointments' %}" class="btn-gradient btn-sm">
+                                                    <i class="fas fa-cog"></i> Manage
+                                                </a>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-calendar-times"></i>
+                                <p>No appointments scheduled for today</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# Active Queue — hidden from doctors #}
+                {% if user.role != 'doctor' %}
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-users"></i> Active Queue</h5>
+                        <a href="{% url 'core:manage_queue' %}" class="btn-gradient btn-sm">
+                            <i class="fas fa-cog"></i> Manage
+                        </a>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if active_queue %}
+                            {% for item in active_queue %}
+                                <div class="appointment-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-1 fw-bold">{{ item.patient.get_full_name }}</h6>
+                                            <p class="text-muted small mb-0">
+                                                <i class="fas fa-ticket-alt me-1"></i>{{ item.queue_number }}
+                                                <span class="mx-2">•</span>
+                                                <i class="far fa-clock me-1"></i>{{ item.entered_at|time:"H:i" }}
+                                            </p>
+                                        </div>
+                                        <span class="status-badge {{ item.status }}">
+                                            {{ item.status|upper }}
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="empty-state">
+                                <i class="fas fa-check-circle" style="color: #2563eb;"></i>
+                                <p>No patients in queue</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ===== RIGHT SIDEBAR ===== -->
+            <div class="col-lg-4">
+
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-id-badge"></i> Staff Information</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="info-row">
+                            <span class="label">Name</span>
+                            <span class="value">{{ user.get_full_name }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Staff ID</span>
+                            <span class="value" style="color: #2563eb;">{{ user.staff_id }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Role</span>
+                            <span class="value">{{ user.get_role_display }}</span>
+                        </div>
+                        {% if user.specialization %}
+                        <div class="info-row">
+                            <span class="label">Specialization</span>
+                            <span class="value">{{ user.specialization }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="info-row">
+                            <span class="label">Email</span>
+                            <span class="value" style="font-size: 0.85rem;">{{ user.email }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Phone</span>
+                            <span class="value">{{ user.phone_number }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {# Pending Approvals sidebar — only for doctors and admins #}
+                {% if user.role == 'doctor' or user.role == 'admin' %}
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-hourglass-half"></i> Pending Approvals</h5>
+                    </div>
+                    <div class="card-body p-4 text-center">
+                        <div style="font-size: 3rem; font-weight: 800; color: #2563eb;">{{ pending_count|default:0 }}</div>
+                        <p class="text-muted small mb-3">Appointments waiting for your approval</p>
+                        <a href="{% url 'core:manage_appointments' %}?status=pending" class="btn-gradient w-100 justify-content-center">
+                            <i class="fas fa-check-circle"></i> Review Now
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

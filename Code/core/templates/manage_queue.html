@@ -1,0 +1,441 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Queue Management - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== PAGE BACKGROUND ===== */
+    .page-bg {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    /* =====================================================
+       PAGE TITLE — WHITE (beats base.html gradient rule)
+       ===================================================== */
+    html body .page-title {
+        text-align: center;
+        margin-bottom: 35px;
+    }
+    html body .page-title h1 {
+        font-weight: 800 !important;
+        font-size: 2rem !important;
+        color: #ffffff !important;
+        background: none !important;
+        background-image: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    html body .page-title p {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 0.95rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===== GLASS CARD (solid white) ===== */
+    .glass-card {
+        background: #ffffff;
+        border-radius: 22px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+    .glass-card .card-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .glass-card .card-header h5 {
+        font-weight: 700;
+        color: #0b1e4d;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .glass-card .card-header h5 i {
+        color: #2563eb !important;
+        background: none !important;
+        -webkit-text-fill-color: #2563eb !important;
+        font-size: 1.2rem;
+    }
+
+    /* ===== ADD TO QUEUE FORM ===== */
+    .queue-form {
+        padding: 25px;
+    }
+    .form-label-custom {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #0b1e4d;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .form-control, .form-select {
+        border-radius: 12px !important;
+        border: 2px solid #e2e8f0 !important;
+        padding: 12px 16px !important;
+        font-size: 0.95rem !important;
+        background: #ffffff !important;
+        background-color: #ffffff !important;
+        color: #0b1e4d !important;
+        transition: all 0.3s;
+    }
+    .form-control::placeholder { color: #94a3b8 !important; }
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb !important;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.13) !important;
+        background: #ffffff !important;
+        color: #0b1e4d !important;
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn-gradient {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(37, 99, 235, 0.45);
+        color: #ffffff !important;
+    }
+    .btn-gradient i { color: #ffffff !important; }
+
+    .btn-outline-gradient {
+        background: transparent;
+        border: 2px solid #2563eb;
+        color: #2563eb !important;
+        border-radius: 12px;
+        padding: 10px 20px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: #ffffff !important;
+        border-color: transparent;
+        transform: translateY(-2px);
+    }
+
+    /* ===== QUEUE ITEMS ===== */
+    .queue-item {
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+    }
+    .queue-item:last-child { border-bottom: none; }
+    .queue-item:hover {
+        background: linear-gradient(90deg, rgba(37, 99, 235, 0.04), transparent);
+    }
+
+    .queue-number {
+        width: 55px; height: 55px;
+        border-radius: 15px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 800;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+    }
+
+    /* ===== STATUS BADGES ===== */
+    .status-badge {
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        display: inline-block;
+    }
+    .status-badge.waiting     { background: linear-gradient(135deg, #f2994a, #f2c94c); color: white; }
+    .status-badge.in_progress { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; }
+    .status-badge.completed   { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+    .status-badge.skipped     { background: linear-gradient(135deg, #eb3349, #f45c43); color: white; }
+
+    /* ===== ACTION BUTTONS ===== */
+    .action-btn {
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+    }
+    .action-btn.start    { background: linear-gradient(135deg, #11998e, #38ef7d); color: white; }
+    .action-btn.complete { background: linear-gradient(135deg, #1e3a8a, #2563eb); color: white; }
+    .action-btn.skip     { background: transparent; border: 2px solid #f2994a; color: #f2994a; }
+    .action-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    .action-btn.complete:hover,
+    .action-btn.start:hover { color: #ffffff; }
+    .action-btn.skip:hover { background: #f2994a; color: #ffffff; }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #64748b;
+    }
+    .empty-state i {
+        font-size: 3.5rem;
+        color: #38ef7d;
+        margin-bottom: 15px;
+    }
+    .empty-state h5 {
+        color: #0b1e4d !important;
+        font-weight: 700;
+    }
+
+    /* ===== MINI STATS — NUMBERS IN BLUE ===== */
+    .stat-mini {
+        text-align: center;
+        padding: 15px;
+    }
+    .stat-mini .num {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #2563eb !important;
+        background: none !important;
+        -webkit-text-fill-color: #2563eb !important;
+        line-height: 1;
+    }
+    .stat-mini .lbl {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 6px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg">
+    <div class="container page-content">
+
+        <div class="page-title">
+            <h1><i class="fas fa-list-ol me-2"></i>Queue Management</h1>
+            <p>Manage patient check-ins and queue flow</p>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                    {{ message }}
+                    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" onclick="this.parentElement.remove()"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- ===== QUICK STATS ===== -->
+        <div class="glass-card">
+            <div class="row g-0">
+                <div class="col-md-4 border-end">
+                    <div class="stat-mini">
+                        <div class="num">{{ active_queues|length }}</div>
+                        <div class="lbl">In Queue</div>
+                    </div>
+                </div>
+                <div class="col-md-4 border-end">
+                    <div class="stat-mini">
+                        <div class="num">{{ completed_queues|length }}</div>
+                        <div class="lbl">Completed (Recent)</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-mini">
+                        <div class="num">{{ today_count|default:0 }}</div>
+                        <div class="lbl">Today's Total</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== ADD TO QUEUE ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-user-plus"></i> Add Patient to Queue</h5>
+            </div>
+            <div class="queue-form">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label-custom">Patient</label>
+                            <select name="patient_id" class="form-select" required>
+                                <option value="">Select Patient...</option>
+                                {% for p in all_patients %}
+                                    <option value="{{ p.id }}">
+                                        {{ p.get_full_name }} — {{ p.sa_id_number }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label-custom">Doctor</label>
+                            <select name="doctor_id" class="form-select" required>
+                                <option value="">Select Doctor...</option>
+                                {% for d in all_doctors %}
+                                    <option value="{{ d.id }}">
+                                        {{ d.get_doctor_display }}{% if d.specialization %} — {{ d.specialization }}{% endif %}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn-gradient w-100">
+                                <i class="fas fa-plus"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===== ACTIVE QUEUE ===== -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h5><i class="fas fa-users"></i> Active Queue</h5>
+                <span class="badge" style="background: linear-gradient(135deg, #f2994a, #f2c94c); color: white; padding: 8px 16px;">
+                    {{ active_queues|length }} in queue
+                </span>
+            </div>
+            <div class="card-body p-0">
+                {% if active_queues %}
+                    {% for item in active_queues %}
+                        <div class="queue-item">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="queue-number me-3">
+                                        {{ item.queue_number|slice:"-3:" }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">{{ item.patient.get_full_name }}</h6>
+                                        <p class="text-muted small mb-1">
+                                            <i class="fas fa-id-card me-1"></i>{{ item.patient.sa_id_number }}
+                                            <span class="mx-2">•</span>
+                                            <i class="fas fa-user-md me-1"></i>{{ item.doctor.get_doctor_display }}
+                                        </p>
+                                        <span class="status-badge {{ item.status }}">{{ item.status|upper|cut:"_" }}</span>
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    {% if item.status == 'waiting' %}
+                                        <form method="POST" action="{% url 'core:update_queue_status' item.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="in_progress">
+                                            <button type="submit" class="action-btn start">
+                                                <i class="fas fa-play"></i> Start
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if item.status == 'in_progress' %}
+                                        <form method="POST" action="{% url 'core:update_queue_status' item.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="status" value="completed">
+                                            <button type="submit" class="action-btn complete">
+                                                <i class="fas fa-check"></i> Complete
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    <form method="POST" action="{% url 'core:update_queue_status' item.id %}" style="display:inline;"
+                                          onsubmit="return confirm('Skip this patient?');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="skipped">
+                                        <button type="submit" class="action-btn skip">
+                                            <i class="fas fa-forward"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-check-circle"></i>
+                        <h5>No patients in queue</h5>
+                        <p>Add patients using the form above</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ===== COMPLETED QUEUE ===== -->
+        {% if completed_queues %}
+            <div class="glass-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history"></i> Recently Completed</h5>
+                </div>
+                <div class="card-body p-0">
+                    {% for item in completed_queues %}
+                        <div class="queue-item" style="opacity: 0.7;">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="queue-number me-3" style="background: linear-gradient(135deg, #11998e, #38ef7d);">
+                                        {{ item.queue_number|slice:"-3:" }}
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">{{ item.patient.get_full_name }}</h6>
+                                        <p class="text-muted small mb-0">
+                                            <i class="fas fa-user-md me-1"></i>{{ item.doctor.get_doctor_display }}
+                                            <span class="mx-2">•</span>
+                                            <i class="far fa-clock me-1"></i>{{ item.completed_at|date:"H:i" }}
+                                        </p>
+                                    </div>
+                                </div>
+                                <span class="status-badge completed">COMPLETED</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Manage Follow-up{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div style="background:#fff; border-radius:20px; padding:30px; max-width:520px; margin:0 auto; color:#0b1e4d;">
+        <h2 style="font-weight:800;">Manage Follow-up</h2>
+        <p style="color:#64748b;">
+            For <strong>{{ followup.patient.get_full_name }}</strong>, due {{ followup.due_date }}
+        </p>
+        <p style="color:#475569;">{{ followup.reason }}</p>
+
+        <form method="post" style="margin-top:20px;">
+            {% csrf_token %}
+            <button type="submit" name="status" value="completed"
+                    style="width:100%; padding:14px; margin-bottom:12px; background:linear-gradient(135deg,#11998e,#38ef7d);
+                           color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">
+                <i class="fas fa-check"></i> Mark as Completed
+            </button>
+            <button type="submit" name="status" value="scheduled"
+                    style="width:100%; padding:14px; margin-bottom:12px; background:linear-gradient(135deg,#1e3a8a,#2563eb);
+                           color:white; border:none; border-radius:12px; font-weight:700; cursor:pointer;">
+                <i class="fas fa-calendar"></i> Mark as Scheduled
+            </button>
+            <button type="submit" name="status" value="cancelled"
+                    style="width:100%; padding:14px; background:#f1f5f9; color:#991b1b;
+                           border:none; border-radius:12px; font-weight:700; cursor:pointer;">
+                <i class="fas fa-times"></i> Cancel Follow-up
+            </button>
+        </form>
+
+        <a href="{% url 'core:view_patient_records' followup.patient.id %}"
+           style="display:block; text-align:center; margin-top:20px; color:#2563eb; font-weight:700;">
+            Back to Records
+        </a>
+    </div>
+</div>
+{% endblock %}

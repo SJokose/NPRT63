@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Appointments - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    .page-wrapper {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+    }
+
+    html body .page-title { text-align: center; margin-bottom: 30px; }
+    html body .page-title h1 {
+        font-weight: 800 !important;
+        font-size: 2rem !important;
+        color: #ffffff !important;
+        background: none !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    html body .page-title p { color: rgba(255,255,255,0.8) !important; }
+
+    .glass-card {
+        background: #ffffff;
+        border-radius: 22px;
+        padding: 30px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        position: relative;
+        z-index: 2;
+    }
+
+    .appointment-row {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-left: 5px solid #2563eb;
+        transition: all 0.3s;
+    }
+    .appointment-row:hover {
+        transform: translateX(5px);
+        box-shadow: 0 10px 30px rgba(37, 99, 235, 0.15);
+    }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: white;
+    }
+    .status-pending    { background: linear-gradient(135deg, #f2994a, #f2c94c); }
+    .status-confirmed  { background: linear-gradient(135deg, #11998e, #38ef7d); }
+    .status-completed  { background: linear-gradient(135deg, #1e3a8a, #2563eb); }
+    .status-cancelled  { background: linear-gradient(135deg, #eb3349, #f45c43); }
+    .status-missed     { background: linear-gradient(135deg, #eb3349, #f45c43); }
+
+    .btn-reschedule {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: white !important;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.3s;
+    }
+    .btn-reschedule:hover {
+        color: white !important;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.4);
+    }
+
+    .btn-cancel-outline {
+        background: transparent;
+        color: #eb3349 !important;
+        border: 2px solid #eb3349;
+        border-radius: 8px;
+        padding: 5px 14px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .btn-cancel-outline:hover {
+        background: #eb3349;
+        color: white !important;
+    }
+
+    /* FIX: empty-state Book button — guaranteed visible */
+    .btn-book-empty {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 32px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: #ffffff !important;
+        font-weight: 700;
+        font-size: 0.95rem;
+        letter-spacing: 0.5px;
+        text-decoration: none !important;
+        border: none;
+        box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+        transition: all 0.3s ease;
+        margin-top: 8px;
+    }
+    .btn-book-empty:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 40px rgba(37, 99, 235, 0.6);
+        color: #ffffff !important;
+    }
+    .btn-book-empty i { color: #ffffff !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrapper">
+    <div class="container">
+        <div class="page-title">
+            <h1><i class="fas fa-calendar-check me-2"></i>My Appointments</h1>
+            <p>All your scheduled and past consultations</p>
+        </div>
+
+        <div class="glass-card">
+            {% if appointments %}
+                {% for appointment in appointments %}
+                    <div class="appointment-row">
+                        <div>
+                            <h6 class="mb-1 fw-bold">{{ appointment.doctor.get_doctor_display }}</h6>
+                            <p class="text-muted small mb-1">
+                                <i class="far fa-calendar-alt me-1"></i>{{ appointment.appointment_date|date:"l, d F Y" }}
+                                <span class="mx-2">•</span>
+                                <i class="far fa-clock me-1"></i>{{ appointment.appointment_time|time:"H:i" }}
+                            </p>
+                            <p class="small text-muted mb-0">
+                                <i class="fas fa-comment-medical me-1"></i>{{ appointment.reason_for_visit|truncatechars:60 }}
+                            </p>
+                        </div>
+                        <div class="text-end">
+                            <span class="status-badge status-{{ appointment.status }} mb-2 d-inline-block">
+                                {{ appointment.status|upper }}
+                            </span>
+                            {% if appointment.status == 'pending' or appointment.status == 'confirmed' %}
+                                <div class="d-flex gap-2 justify-content-end mt-2">
+                                    <a href="{% url 'core:reschedule_appointment' appointment.id %}"
+                                       class="btn-reschedule">
+                                        <i class="fas fa-calendar-alt me-1"></i>Reschedule
+                                    </a>
+
+                                    <form method="POST"
+                                          action="{% url 'core:cancel_appointment' appointment.id %}"
+                                          style="display: inline;"
+                                          onsubmit="return confirm('Cancel this appointment? You will receive a confirmation SMS.');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="reason" value="Cancelled by patient">
+                                        <button type="submit" class="btn-cancel-outline">
+                                            <i class="fas fa-times me-1"></i>Cancel
+                                        </button>
+                                    </form>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-plus fa-4x text-muted mb-3" style="opacity: 0.3;"></i>
+                    <h5 class="text-muted">No appointments yet</h5>
+                    <p class="text-muted small">Book your first appointment to get started.</p>
+                    <a href="{% url 'core:book_appointment' %}" class="btn-book-empty">
+                        <i class="fas fa-plus"></i>Book Appointment
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

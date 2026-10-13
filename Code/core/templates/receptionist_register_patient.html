@@ -1,0 +1,380 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register Patient - MediSync SA{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== PAGE BACKGROUND ===== */
+    .page-bg {
+        background: transparent !important;
+        min-height: calc(100vh - 76px);
+        padding: 40px 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .page-content { position: relative; z-index: 2; }
+
+    /* ===== PAGE TITLE ===== */
+    html body .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    html body .page-title h1 {
+        font-weight: 800 !important;
+        font-size: 2rem !important;
+        color: #ffffff !important;
+        background: none !important;
+        background-image: none !important;
+        -webkit-background-clip: initial !important;
+        background-clip: initial !important;
+        -webkit-text-fill-color: #ffffff !important;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+    html body .page-title p {
+        color: rgba(255, 255, 255, 0.8) !important;
+        font-size: 0.95rem;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ===== BREADCRUMB ===== */
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: rgba(255, 255, 255, 0.75);
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+    }
+    .breadcrumb-nav a {
+        color: rgba(255, 255, 255, 0.75);
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .breadcrumb-nav a:hover { color: #ffffff; }
+    .breadcrumb-nav span { color: #ffffff; font-weight: 600; }
+
+    /* ===== GLASS CARD ===== */
+    .glass-card {
+        background: #ffffff;
+        border-radius: 22px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+    }
+    .glass-card .card-header {
+        padding: 20px 25px;
+        border-bottom: 1px solid rgba(37, 99, 235, 0.12);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+    }
+    .glass-card .card-header h5 {
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .glass-card .card-header h5 i {
+        color: #ffffff !important;
+        background: none !important;
+        -webkit-text-fill-color: #ffffff !important;
+        font-size: 1.2rem;
+    }
+
+    /* ===== FORM FIELDS ===== */
+    .form-label {
+        font-weight: 700;
+        color: #0b1e4d;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+    .form-label .req {
+        color: #dc2626;
+        margin-left: 2px;
+    }
+    .form-control, .form-select {
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        color: #0b1e4d;
+        transition: all 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+        border-color: #2563eb;
+        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.15);
+        outline: none;
+    }
+    .form-control::placeholder {
+        color: #94a3b8;
+    }
+    .form-text {
+        color: #64748b;
+        font-size: 0.75rem;
+    }
+    .field-error {
+        color: #dc2626;
+        font-size: 0.78rem;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* ===== SECTION HEADING ===== */
+    .section-heading {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        color: #0b1e4d;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin: 25px 0 15px;
+    }
+    .section-heading::before {
+        content: '';
+        width: 5px;
+        height: 18px;
+        background: linear-gradient(180deg, #1e3a8a, #2563eb);
+        border-radius: 5px;
+    }
+    .section-heading:first-child { margin-top: 0; }
+
+    /* ===== BUTTONS ===== */
+    .btn-gradient {
+        background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+        border: none !important;
+        color: #ffffff !important;
+        border-radius: 12px;
+        padding: 14px 28px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45);
+        color: #ffffff !important;
+    }
+    .btn-gradient i { color: #ffffff !important; }
+
+    .btn-outline-gradient {
+        background: transparent;
+        border: 2px solid #2563eb;
+        color: #2563eb !important;
+        border-radius: 12px;
+        padding: 12px 26px;
+        font-weight: 700;
+        font-size: 0.9rem;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-outline-gradient:hover {
+        background: linear-gradient(135deg, #1e3a8a, #2563eb);
+        color: #ffffff !important;
+        border-color: transparent;
+        transform: translateY(-2px);
+    }
+
+    /* ===== INFO BANNER ===== */
+    .info-banner {
+        background: #dbeafe;
+        border-left: 4px solid #2563eb;
+        border-radius: 12px;
+        padding: 14px 18px;
+        color: #1e40af;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .info-banner i {
+        color: #2563eb;
+        font-size: 1.1rem;
+        margin-top: 2px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-bg">
+    <div class="container page-content">
+
+        <!-- ===== BREADCRUMB ===== -->
+        <div class="breadcrumb-nav">
+            <a href="{% url 'core:staff_dashboard' %}">
+                <i class="fas fa-home me-1"></i> Dashboard
+            </a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <a href="{% url 'core:search_patient' %}">Patient Search</a>
+            <i class="fas fa-chevron-right" style="font-size: 0.7rem;"></i>
+            <span>Register New Patient</span>
+        </div>
+
+        <!-- ===== PAGE TITLE ===== -->
+        <div class="page-title">
+            <h1><i class="fas fa-user-plus me-2"></i>Register New Patient</h1>
+            <p>Create a patient record in the system</p>
+        </div>
+
+        <!-- ===== FORM CARD ===== -->
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-id-card"></i> Patient Details</h5>
+                    </div>
+                    <div class="card-body p-4 p-md-5">
+
+                        <div class="info-banner">
+                            <i class="fas fa-info-circle"></i>
+                            <div>
+                                Fill in the patient's details below. The SA ID number is
+                                used as their login username, so it must be unique.
+                            </div>
+                        </div>
+
+                        <form method="POST" novalidate>
+                            {% csrf_token %}
+
+                            {# ===== Non-field errors ===== #}
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger rounded-3 mb-4">
+                                    {% for err in form.non_field_errors %}
+                                        <div><i class="fas fa-exclamation-triangle me-1"></i>{{ err }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+
+                            {# ===== Personal Info ===== #}
+                            <div class="section-heading">Personal Information</div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">SA ID Number <span class="req">*</span></label>
+                                    {{ form.sa_id_number }}
+                                    {% if form.sa_id_number.help_text %}
+                                        <div class="form-text">{{ form.sa_id_number.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.sa_id_number.errors %}
+                                        {% for err in form.sa_id_number.errors %}
+                                            <div class="field-error"><i class="fas fa-exclamation-circle"></i>{{ err }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Date of Birth <span class="req">*</span></label>
+                                    {{ form.date_of_birth }}
+                                    {% if form.date_of_birth.errors %}
+                                        {% for err in form.date_of_birth.errors %}
+                                            <div class="field-error"><i class="fas fa-exclamation-circle"></i>{{ err }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">First Name <span class="req">*</span></label>
+                                    {{ form.first_name }}
+                                    {% if form.first_name.errors %}
+                                        {% for err in form.first_name.errors %}
+                                            <div class="field-error"><i class="fas fa-exclamation-circle"></i>{{ err }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Surname <span class="req">*</span></label>
+                                    {{ form.last_name }}
+                                    {% if form.last_name.errors %}
+                                        {% for err in form.last_name.errors %}
+                                            <div class="field-error"><i class="fas fa-exclamation-circle"></i>{{ err }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {# ===== Contact Info ===== #}
+                            <div class="section-heading">Contact Information</div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Email Address <span class="req">*</span></label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        {% for err in form.email.errors %}
+                                            <div class="field-error"><i class="fas fa-exclamation-circle"></i>{{ err }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Phone Number <span class="req">*</span></label>
+                                    {{ form.phone_number }}
+                                    {% if form.phone_number.errors %}
+                                        {% for err in form.phone_number.errors %}
+                                            <div class="field-error"><i class="fas fa-exclamation-circle"></i>{{ err }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {# ===== Security ===== #}
+                            <div class="section-heading">Security</div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">Password <span class="req">*</span></label>
+                                    {{ form.password1 }}
+                                    {% if form.password1.help_text %}
+                                        <div class="form-text">{{ form.password1.help_text|safe }}</div>
+                                    {% endif %}
+                                    {% if form.password1.errors %}
+                                        {% for err in form.password1.errors %}
+                                            <div class="field-error"><i class="fas fa-exclamation-circle"></i>{{ err }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Confirm Password <span class="req">*</span></label>
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}
+                                        {% for err in form.password2.errors %}
+                                            <div class="field-error"><i class="fas fa-exclamation-circle"></i>{{ err }}</div>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {# ===== Actions ===== #}
+                            <div class="d-flex flex-wrap gap-3 justify-content-end mt-5 pt-3 border-top">
+                                <a href="{% url 'core:search_patient' %}" class="btn-outline-gradient">
+                                    <i class="fas fa-arrow-left"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn-gradient">
+                                    <i class="fas fa-user-plus"></i> Register Patient
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
